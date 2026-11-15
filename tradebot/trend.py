@@ -48,8 +48,9 @@ class TrendConfig:
     rebalance_band: float = 0.10  # trade only when exposure is off by this share of equity
     drawdown_limit: float = 0.15  # go flat and pause when equity falls this far from its peak
     pause_days: int = 30
-    # "maker_first": rest a limit order at the closing price for one day (maker fee); if it
-    # does not fill, trade at the next close (taker fee). "taker": trade at once at the taker fee.
+    # "maker_first": rest a limit order at the closing price for one day (maker fee). If it does
+    # not fill it is cancelled, and the next close's own decision trades at once (taker fee).
+    # "taker": always trade at once at the taker fee.
     execution: str = "taker"
     fill_buffer: float = 0.001  # a resting order only counts as filled if price trades this far through it
     slippage: float = 0.0005

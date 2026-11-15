@@ -126,6 +126,9 @@ def test_gate_checks_and_input_validation():
         gate(c, cfg, replace(cfg, product="ETH-USD"))
     with pytest.raises(ValueError):
         gate(c.loc["2020":], cfg, replace(cfg))
+    with pytest.raises(ValueError):  # needs 400 days of history, so cannot start on time
+        gate(c, cfg, replace(cfg, ma_windows=[50, 100, 200, 400]))
+    assert gate(c, cfg, replace(cfg, target_vol=0.2))["changed_settings"] == {"target_vol": (0.25, 0.2)}
 
 
 def test_missing_config_file_is_an_error():

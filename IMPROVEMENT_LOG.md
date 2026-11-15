@@ -16,3 +16,6 @@ rule sets, yearly re-tuning, time-of-day effects and intraday momentum; results 
   return". The gate now compares Sharpe ratios, stresses fills at 1%, adds a latest-period
   hard-fill check and a return floor, and validates its inputs. The latest-period hard-fill check
   was added after seeing that `maker_first` passed overall while being worse in 2023-26.
+  A second review noted that the 1% stress level decides the outcome (at 0.5% `maker_first` is
+  ahead since 2023), so this rejection reflects caution about an unknowable fill rate, not
+  evidence that the change is harmful. Revisit if real fill data ever becomes available.

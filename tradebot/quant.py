@@ -126,6 +126,9 @@ def gate(candles: pd.DataFrame, baseline: TrendConfig, candidate: TrendConfig) -
 
     def profile(cfg: TrendConfig) -> dict:
         eq = equity_curve(run(candles, cfg, start=GATE_START))
+        if eq.index[0] != pd.Timestamp(GATE_START):
+            raise ValueError(f"Config cannot trade from {GATE_START} (first day {eq.index[0].date()}): "
+                             "its indicators need more history than the data holds")
         r = eq.pct_change().fillna(0)
         hard_cfg = replace(cfg, fill_buffer=max(HARD_FILL_BUFFER, cfg.fill_buffer))
         hard = equity_curve(run(candles, hard_cfg, start=GATE_START)).pct_change().fillna(0)
@@ -148,7 +151,10 @@ def gate(candles: pd.DataFrame, baseline: TrendConfig, candidate: TrendConfig) -
         "return_at_least_target_or_baseline": bool(cand["annual_return_pct"] >= target),
     }
     rounded = lambda p: {k: [round(x, 2) for x in v] if isinstance(v, list) else round(float(v), 2) for k, v in p.items()}
-    return {"baseline": rounded(base), "candidate": rounded(cand), "checks": checks, "passed": all(checks.values())}
+    b, c = vars(baseline), vars(candidate)
+    changed = {k: (b[k], c[k]) for k in b if b[k] != c[k]}  # shown so an unintended difference is visible
+    return {"changed_settings": changed, "baseline": rounded(base), "candidate": rounded(cand),
+            "checks": checks, "passed": all(checks.values())}
 
 
 if __name__ == "__main__":
@@ -168,16 +174,18 @@ if __name__ == "__main__":
     elif a.command == "gate":
         if not a.candidate:
             ap.error("gate needs --candidate FILE")
+        if a.start != GATE_START:
+            ap.error(f"gate always runs from {GATE_START}; --start is not accepted")
         result = gate(load_daily(cfg.product), cfg, load_trend_config(a.candidate))
-        for key in ("baseline", "candidate", "checks"):
+        for key in ("changed_settings", "baseline", "candidate", "checks"):
             print(f"{key}: {result[key]}")
         print("PASSED" if result["passed"] else "REJECTED")
     elif a.command == "fees":
         state = run(load_daily(cfg.product), cfg, start=a.start)
-        m = metrics(state, cfg)
         t = pd.DataFrame(state["trades"])
-        if t.empty or t["notional"].sum() == 0:
-            raise SystemExit("No trades in this window, so there is no turnover to project")
+        if len(state["days"]) < 365 or t.empty or t["notional"].sum() == 0:
+            raise SystemExit("Need at least a year of history with trades to project turnover")
+        m = metrics(state, cfg)
         share = t.loc[t["type"] == "maker", "notional"].sum() / t["notional"].sum()
         print(f"turnover {m['turnover_per_year']}x per year, {share:.0%} of traded value at the maker fee")
         print(fee_projection(cfg, m["turnover_per_year"], share).to_string(index=False))
