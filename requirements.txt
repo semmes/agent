@@ -6,3 +6,4 @@ feedparser
 pydantic>=2
 anthropic
 pytest
+scipy

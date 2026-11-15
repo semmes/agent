@@ -60,6 +60,59 @@ The 30-day run counts as a pass only if all of these hold:
 3. No weekly shutdown.
 4. At least 5 completed trades. Fewer than that is too small a sample to judge either way.
 
+## Track 2: multi-day trend following
+
+The intraday rules above cannot overcome fees, so a second paper track runs alongside them with
+a monthly goal (20% a year, about 1.5% a month) instead of a daily one. Settings are in
+`trend.yaml`; code is in `tradebot/trend.py`.
+
+- **Signal:** once a day, exposure to BTC is the share of the 50-, 100- and 200-day averages the
+  price is above (0%, 33%, 67% or 100%).
+- **Sizing:** exposure is scaled down when 30-day volatility is above a 25% annual target.
+- **Trading:** it rebalances only when exposure is off by 20% of the account, about 15 trades a year.
+- **Circuit breaker:** flat for 30 days after a 15% fall from the peak.
+- **Still spot, long-only, BTC only, no margin.**
+
+Backtest on daily candles from 2017, taker fees on every order, $5,000 start:
+
+| | 2017 to 2026 | 2023 to 2026 |
+|---|---|---|
+| Return per year | 24.9% | 18.9% |
+| Worst drawdown | -24.1% | -21.0% |
+| Buy and hold BTC, per year | 52% (worst drawdown -77%) | |
+
+Year by year: 2017 +96%, 2018 -18%, 2019 +44%, 2020 +85%, 2021 +16%, 2022 -9%, 2023 +46%,
+2024 +41%, 2025 -3%, 2026 to date -2%.
+
+What the research tools (`tradebot/quant.py`) say about how far to trust this:
+
+- **The direction is robust.** All 36 rule sets tested made money in each of 2017-19, 2020-22 and
+  2023-26. The edge has shrunk over time; the typical rule set made 15.7% a year in 2023-26.
+- **Re-tuning every year does not help.** Picking each year's rules from the previous three years
+  returned only 5.8% a year with a -43% drawdown, so the settings are fixed mid-range values.
+- **Months are uneven.** Only about 4 months in 10 are up; the worst month was -10.6%. It is in
+  the market about 60% of the time and can sit in cash for months.
+- **The intraday momentum effect from the literature does not appear here.** The first half hour
+  of the day had no relationship with the last (correlation between -0.02 and 0.05).
+
+### Fees as the account grows
+
+The backtest applies Coinbase's volume tiers (0.50%/0.90% below $10,000 of 30-day volume,
+0.35%/0.75% from $10,000, 0.15%/0.30% from $50,000, 0.10%/0.15% from $250,000). The strategy
+trades about 5 times the account value per year, so with the account compounding at 20%:
+
+| Year | Account | Volume per month | Taker fee | Fee cost per year |
+|---|---|---|---|---|
+| 0 | $5,000 | $2,083 | 0.90% | 4.5% |
+| 5 | $12,442 | $5,184 | 0.90% | 4.5% |
+| 10 | $30,959 | $12,899 | 0.75% | 3.75% |
+| 15 | $77,035 | $32,098 | 0.75% | 3.75% |
+| 20 | $191,688 | $79,870 | 0.30% | 1.5% |
+
+Growth alone does not reach a lower tier for about ten years. Using resting limit orders (maker
+fees) roughly halves the fee cost immediately; the paper track assumes the higher taker fee
+throughout.
+
 Reproduce:
 
 ```
@@ -67,6 +120,9 @@ pip install -r requirements.txt
 python -m tradebot.data --days 1095     # download candles
 python -m tradebot.backtest             # backtest config.yaml
 python -m tradebot.research             # parameter search with the tune/test split
+python -m tradebot.data --days 3900 --granularity 86400   # daily candles for track 2
+python -m tradebot.trend backtest --start 2017-01-01
+python -m tradebot.quant walkforward    # also: fees, intraday
 python -m pytest tests
 ```
 
@@ -76,7 +132,8 @@ python -m pytest tests
 Each run replays every 15-minute candle since the last run through the same engine the backtest
 uses, starting from $5,000, and stops after 30 days.
 
-- State and the full report live on the `paper-state` branch (`report.md`).
+- State and the full report live on the `paper-state` branch (`report.md`; track 2 is in
+  `trend/report.md` and acts once a day after the 7 pm Eastern daily close).
 - Each completed day is posted to an issue titled "Paper trading daily log".
 - Optional: add an `ANTHROPIC_API_KEY` repository secret for LLM news scoring.
 - After a weekly shutdown: `python -m tradebot.paper --reset-shutdown`.
