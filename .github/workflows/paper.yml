@@ -41,6 +41,9 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }} # optional: enables LLM news scoring
         run: python -m tradebot.paper --dir paper
 
+      - name: Run the trend track (acts once per daily close)
+        run: python -m tradebot.trend paper --dir paper/trend
+
       - name: Save state
         working-directory: paper
         run: |
@@ -51,13 +54,14 @@ jobs:
           git push origin paper-state
 
       - name: Job summary
-        run: cat paper/report.md >> "$GITHUB_STEP_SUMMARY"
+        run: cat paper/report.md paper/trend/report.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Post the daily result to the log issue
         if: hashFiles('paper/daily.md') != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          { echo; echo "---"; head -n 9 paper/trend/report.md; } >> paper/daily.md
           n=$(gh issue list --state open --search "Paper trading daily log in:title" --json number -q '.[0].number')
           if [ -z "$n" ]; then
             gh issue create --title "Paper trading daily log" --body-file paper/daily.md
