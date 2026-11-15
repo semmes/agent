@@ -1,0 +1,22 @@
+{
+ "cash": 5000,
+ "product": null,
+ "qty": 0.0,
+ "entry_price": 0.0,
+ "entry_ts": "",
+ "entry_fee": 0.0,
+ "stop": 0.0,
+ "high_water": 0.0,
+ "pending": null,
+ "marks": {},
+ "day": "",
+ "day_start_equity": 0.0,
+ "day_halt": "",
+ "trades_today": 0,
+ "week": "",
+ "week_start_equity": 0.0,
+ "shutdown": "",
+ "last_ts": "",
+ "trades": [],
+ "days": []
+}

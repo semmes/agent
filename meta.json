@@ -1,0 +1,16 @@
+{
+ "started": 1794771604,
+ "news": [
+  {
+   "risk": "low",
+   "direction": "neutral",
+   "reason": "No risk keywords in recent headlines",
+   "block": false,
+   "scorer": "keywords",
+   "headlines": 3,
+   "ts": 1794771604
+  }
+ ],
+ "finished": false,
+ "updated": 1794771604
+}
