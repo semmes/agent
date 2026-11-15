@@ -8,15 +8,18 @@
  "stop": 0.0,
  "high_water": 0.0,
  "pending": null,
- "marks": {},
- "day": "",
- "day_start_equity": 0.0,
+ "marks": {
+  "BTC-USD": 64998.98,
+  "ETH-USD": 1817.91
+ },
+ "day": "2026-11-15",
+ "day_start_equity": 5000.0,
  "day_halt": "",
  "trades_today": 0,
- "week": "",
- "week_start_equity": 0.0,
+ "week": "2026-W46",
+ "week_start_equity": 5000.0,
  "shutdown": "",
- "last_ts": "",
+ "last_ts": "2026-11-15T21:15:00Z",
  "trades": [],
  "days": []
 }

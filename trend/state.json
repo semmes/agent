@@ -1,0 +1,17 @@
+{
+ "cash": 5000,
+ "qty": 0.0,
+ "peak": 5000,
+ "paused_until": "",
+ "last_date": "2026-11-14",
+ "volume": [],
+ "days": [
+  {
+   "date": "2026-11-14",
+   "equity": 5000,
+   "weight": 0.0
+  }
+ ],
+ "trades": [],
+ "breaker_trips": 0
+}
