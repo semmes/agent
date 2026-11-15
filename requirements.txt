@@ -1,0 +1,8 @@
+pandas>=2.2
+numpy
+requests
+PyYAML
+feedparser
+pydantic>=2
+anthropic
+pytest
