@@ -1,0 +1,66 @@
+name: Paper trading
+
+on:
+  schedule:
+    - cron: "7 * * * *" # hourly; bars are replayed, so a late run loses nothing
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: paper-trading
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check out the paper-state branch into ./paper
+        run: |
+          if git ls-remote --exit-code origin paper-state >/dev/null; then
+            git fetch --depth 1 origin paper-state
+            git worktree add -B paper-state paper FETCH_HEAD
+          else
+            git worktree add --orphan -b paper-state paper
+          fi
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Run one paper-trading tick
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }} # optional: enables LLM news scoring
+        run: python -m tradebot.paper --dir paper
+
+      - name: Save state
+        working-directory: paper
+        run: |
+          git config user.name "paper-trader"
+          git config user.email "paper-trader@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -q -m "Paper tick $(date -u +%FT%RZ)"
+          git push origin paper-state
+
+      - name: Job summary
+        run: cat paper/report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Post the daily result to the log issue
+        if: hashFiles('paper/daily.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(gh issue list --state open --search "Paper trading daily log in:title" --json number -q '.[0].number')
+          if [ -z "$n" ]; then
+            gh issue create --title "Paper trading daily log" --body-file paper/daily.md
+          else
+            gh issue comment "$n" --body-file paper/daily.md
+          fi

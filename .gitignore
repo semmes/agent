@@ -1,0 +1,5 @@
+data/
+paper/
+__pycache__/
+.pytest_cache/
+research_results*.csv
