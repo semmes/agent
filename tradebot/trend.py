@@ -50,7 +50,8 @@ class TrendConfig:
     pause_days: int = 30
     # "maker_first": rest a limit order at the closing price for one day (maker fee); if it
     # does not fill, trade at the next close (taker fee). "taker": trade at once at the taker fee.
-    execution: str = "maker_first"
+    execution: str = "taker"
+    fill_buffer: float = 0.001  # a resting order only counts as filled if price trades this far through it
     slippage: float = 0.0005
     fee_tiers: list = field(default_factory=lambda: [list(t) for t in FEE_TIERS])
 
@@ -123,7 +124,10 @@ def step(s: dict, date: str, bar: dict, target: float, cfg: TrendConfig) -> None
 
     order, s["pending"] = s.get("pending"), None
     if order:  # placed at the previous close; filled only if today's range traded through it
-        filled = bar["low"] < order["limit"] if order["side"] == "buy" else bar["high"] > order["limit"]
+        if order["side"] == "buy":
+            filled = bar["low"] < order["limit"] * (1 - cfg.fill_buffer)
+        else:
+            filled = bar["high"] > order["limit"] * (1 + cfg.fill_buffer)
         _trade(s, date, order["limit"] if filled else price, order["target"], filled, cfg)
 
     equity = s["cash"] + s["qty"] * price

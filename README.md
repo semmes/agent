@@ -77,12 +77,12 @@ Backtest on daily candles from 2017, taker fees on every order, $5,000 start:
 
 | | 2017 to 2026 | 2023 to 2026 |
 |---|---|---|
-| Return per year | 24.9% | 18.9% |
-| Worst drawdown | -24.1% | -21.0% |
-| Buy and hold BTC, per year | 52% (worst drawdown -77%) | |
+| Return per year | 24.9% | 17.3% |
+| Worst drawdown | -24.1% | -24.3% |
+| Buy and hold BTC, per year | 52% (worst drawdown -84%) | |
 
-Year by year: 2017 +96%, 2018 -18%, 2019 +44%, 2020 +85%, 2021 +16%, 2022 -9%, 2023 +46%,
-2024 +41%, 2025 -3%, 2026 to date -2%.
+Year by year: 2017 +95%, 2018 -18%, 2019 +44%, 2020 +85%, 2021 +16%, 2022 -9%, 2023 +46%,
+2024 +41%, 2025 -3%, 2026 to date -1%. The 2023 column is a separate run started in 2023 with $5,000.
 
 What the research tools (`tradebot/quant.py`) say about how far to trust this:
 
@@ -109,9 +109,17 @@ trades about 5 times the account value per year, so with the account compounding
 | 15 | $77,035 | $32,098 | 0.75% | 3.75% |
 | 20 | $191,688 | $79,870 | 0.30% | 1.5% |
 
-Growth alone does not reach a lower tier for about ten years. Using resting limit orders (maker
-fees) roughly halves the fee cost immediately; the paper track assumes the higher taker fee
-throughout.
+Growth alone does not reach a lower tier for about ten years. Resting limit orders
+(`execution: maker_first`) halve the fee cost and lift the return to about 26% if they fill
+easily, but if price must trade 0.5% through the order the return falls to 23%, below trading
+at once. The promotion gate rejected the change, so the paper track pays the taker fee.
+
+## How the agent is improved
+
+`IMPROVEMENT.md` is the standing process: a weekly cycle audits both paper tracks, tests at most
+a few candidate changes, and adopts one only if it passes the promotion gate
+(`python -m tradebot.quant gate --candidate FILE`) and two independent sub-agent checks.
+Every candidate, adopted or rejected, is recorded in `IMPROVEMENT_LOG.md`.
 
 Reproduce:
 

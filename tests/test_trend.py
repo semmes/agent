@@ -2,7 +2,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from tradebot.quant import fee_projection, walk_forward
+from dataclasses import replace
+
+from tradebot.quant import fee_projection, gate, walk_forward
 from tradebot.trend import TrendConfig, fee_rate, new_state, run, step, target_weights
 
 
@@ -46,7 +48,7 @@ def test_never_borrows_and_accounts_for_fees():
 
 
 def test_drawdown_breaker_goes_flat_and_pauses():
-    cfg = TrendConfig(execution="taker")
+    cfg = TrendConfig()
     s = new_state(cfg)
     step(s, "2026-01-01", bar(100.0), 1.0, cfg)
     assert s["qty"] > 0
@@ -59,7 +61,7 @@ def test_drawdown_breaker_goes_flat_and_pauses():
 
 
 def test_maker_first_fills_at_limit_or_falls_back_to_taker():
-    cfg = TrendConfig()
+    cfg = TrendConfig(execution="maker_first")
     s = new_state(cfg)
     step(s, "2026-01-01", bar(100.0), 1.0, cfg)
     assert s["qty"] == 0 and s["pending"]["limit"] == 100.0  # order rests, nothing bought yet
@@ -75,13 +77,27 @@ def test_maker_first_fills_at_limit_or_falls_back_to_taker():
 
 
 def test_breaker_exit_does_not_wait_for_a_fill():
-    cfg = TrendConfig()
+    cfg = TrendConfig(execution="maker_first")
     s = new_state(cfg)
     step(s, "2026-01-01", bar(100.0), 1.0, cfg)
     step(s, "2026-01-02", bar(100.0, low=99.0), 1.0, cfg)
     assert s["qty"] > 0
     step(s, "2026-01-03", bar(80.0), 1.0, cfg)
     assert s["qty"] == 0 and s["pending"] is None and s["trades"][-1]["type"] == "taker"
+
+
+def test_fill_buffer_requires_price_to_trade_through_the_limit():
+    cfg = TrendConfig(execution="maker_first", fill_buffer=0.01)
+    s = new_state(cfg)
+    step(s, "2026-01-01", bar(100.0), 1.0, cfg)
+    step(s, "2026-01-02", bar(102.0, high=103.0, low=99.5), 1.0, cfg)  # dipped 0.5%, needs 1%
+    assert s["trades"][-1]["type"] == "taker"
+
+
+def test_gate_rejects_a_candidate_that_is_not_better():
+    c, cfg = prices(), TrendConfig()
+    same = gate(c, cfg, replace(cfg), start="2020-01-01")
+    assert not same["passed"]
 
 
 def test_walk_forward_uses_only_past_years():

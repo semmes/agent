@@ -4,8 +4,9 @@
   deflated Sharpe discount the result for the number of rule sets tried
   fee projection  how Coinbase's volume tiers lower fees as the account grows
   intraday test   does the first half hour of the day predict the last (Shen et al. 2022)
+  gate            does a candidate trend.yaml beat the current one robustly enough to adopt
 
-Usage: python -m tradebot.quant [walkforward|fees|intraday]
+Usage: python -m tradebot.quant [walkforward|fees|intraday|gate --candidate FILE]
 """
 from __future__ import annotations
 
@@ -109,9 +110,33 @@ def intraday_momentum(candles: pd.DataFrame, split: str = "2025-11-15") -> pd.Da
     return pd.DataFrame(rows)
 
 
+GATE_PERIODS = [("2017", "2019"), ("2020", "2022"), ("2023", None)]
+
+
+def gate(candles: pd.DataFrame, baseline: TrendConfig, candidate: TrendConfig, start: str = "2017-01-01") -> dict:
+    """Promotion gate: a candidate replaces the baseline only if it is better across periods,
+    not just overall, and still better when fills are assumed to be much harder to get."""
+    def profile(cfg: TrendConfig) -> dict:
+        r = equity_curve(run(candles, cfg, start=start)).pct_change().fillna(0)
+        hard = equity_curve(run(candles, replace(cfg, fill_buffer=0.005), start=start)).pct_change().fillna(0)
+        return {"periods": [round(sharpe(r.loc[a:b]), 2) for a, b in GATE_PERIODS], **summarize(r),
+                "hard_fill_annual_return_pct": summarize(hard)["annual_return_pct"]}
+
+    base, cand = profile(baseline), profile(candidate)
+    wins = sum(c > b for c, b in zip(cand["periods"], base["periods"]))
+    checks = {
+        "better_sharpe_in_2_of_3_periods": wins >= 2,
+        "latest_period_not_worse": cand["periods"][-1] >= base["periods"][-1] - 0.05,
+        "drawdown_not_worse_by_2pts": cand["max_drawdown_pct"] >= base["max_drawdown_pct"] - 2,
+        "better_with_hard_fills": cand["hard_fill_annual_return_pct"] > base["hard_fill_annual_return_pct"],
+    }
+    return {"baseline": base, "candidate": cand, "checks": checks, "passed": all(checks.values())}
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("command", choices=["walkforward", "fees", "intraday"])
+    ap.add_argument("command", choices=["walkforward", "fees", "intraday", "gate"])
+    ap.add_argument("--candidate", help="candidate trend config (yaml) for the gate")
     ap.add_argument("--start", default="2017-01-01")
     a = ap.parse_args()
     cfg = load_trend_config()
@@ -122,6 +147,11 @@ if __name__ == "__main__":
         print(picks.to_string(index=False))
         print("walk-forward:", summarize(oos))
         print("deflated Sharpe probability:", round(deflated_sharpe(oos, rets.apply(sharpe)), 3))
+    elif a.command == "gate":
+        result = gate(load_daily(cfg.product), cfg, load_trend_config(a.candidate), a.start)
+        for key in ("baseline", "candidate", "checks"):
+            print(f"{key}: {result[key]}")
+        print("PASSED" if result["passed"] else "REJECTED")
     elif a.command == "fees":
         state = run(load_daily(cfg.product), cfg, start=a.start)
         m = metrics(state, cfg)
