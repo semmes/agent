@@ -18,8 +18,17 @@
    "scorer": "keywords",
    "headlines": 1,
    "ts": 1794778513
+  },
+  {
+   "risk": "low",
+   "direction": "neutral",
+   "reason": "No risk keywords in recent headlines",
+   "block": false,
+   "scorer": "keywords",
+   "headlines": 2,
+   "ts": 1794785577
   }
  ],
  "finished": false,
- "updated": 1794778513
+ "updated": 1794785577
 }
