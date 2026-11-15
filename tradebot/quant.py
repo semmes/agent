@@ -82,7 +82,7 @@ def fee_projection(cfg: TrendConfig, turnover: float, maker_share: float = 0.0, 
     for y in range(0, years + 1):
         equity = cfg.starting_cash * (1 + cfg.annual_target) ** y
         monthly = equity * turnover / 12
-        tier = [t for t in FEE_TIERS if monthly >= t[0]][-1]
+        tier = [t for t in cfg.fee_tiers if monthly >= t[0]][-1]
         blended = maker_share * tier[1] + (1 - maker_share) * tier[2]
         rows.append({"year": y, "account": round(equity), "volume_per_month": round(monthly),
                      "maker_fee_pct": tier[1] * 100, "taker_fee_pct": tier[2] * 100,
@@ -111,26 +111,44 @@ def intraday_momentum(candles: pd.DataFrame, split: str = "2025-11-15") -> pd.Da
 
 
 GATE_PERIODS = [("2017", "2019"), ("2020", "2022"), ("2023", None)]
+GATE_START = "2017-01-01"
+HARD_FILL_BUFFER = 0.01  # stress: a resting order fills only if price trades 1% through it
 
 
-def gate(candles: pd.DataFrame, baseline: TrendConfig, candidate: TrendConfig, start: str = "2017-01-01") -> dict:
-    """Promotion gate: a candidate replaces the baseline only if it is better across periods,
-    not just overall, and still better when fills are assumed to be much harder to get."""
+def gate(candles: pd.DataFrame, baseline: TrendConfig, candidate: TrendConfig) -> dict:
+    """Promotion gate: a candidate replaces the baseline only if its risk-adjusted return is
+    better across periods (not just overall), it does not add drawdown, it still holds up when
+    resting orders are assumed hard to fill, and it does not give up the return target."""
+    if candidate.product != baseline.product:
+        raise ValueError("Candidate and baseline must trade the same product")
+    if candles.index[0] > pd.Timestamp("2016-06-01"):
+        raise ValueError("The gate needs daily history from mid-2016 so all three periods are covered")
+
     def profile(cfg: TrendConfig) -> dict:
-        r = equity_curve(run(candles, cfg, start=start)).pct_change().fillna(0)
-        hard = equity_curve(run(candles, replace(cfg, fill_buffer=0.005), start=start)).pct_change().fillna(0)
-        return {"periods": [round(sharpe(r.loc[a:b]), 2) for a, b in GATE_PERIODS], **summarize(r),
-                "hard_fill_annual_return_pct": summarize(hard)["annual_return_pct"]}
+        eq = equity_curve(run(candles, cfg, start=GATE_START))
+        r = eq.pct_change().fillna(0)
+        hard_cfg = replace(cfg, fill_buffer=max(HARD_FILL_BUFFER, cfg.fill_buffer))
+        hard = equity_curve(run(candles, hard_cfg, start=GATE_START)).pct_change().fillna(0)
+        return {"period_sharpes": [sharpe(r.loc[a:b]) for a, b in GATE_PERIODS],
+                "sharpe": sharpe(r), "hard_fill_sharpe": sharpe(hard),
+                "hard_fill_latest_sharpe": sharpe(hard.loc[GATE_PERIODS[-1][0]:]),
+                "annual_return_pct": ((eq.iloc[-1] / cfg.starting_cash) ** (365 / len(eq)) - 1) * 100,
+                "max_drawdown_pct": (eq / eq.cummax() - 1).min() * 100}
 
     base, cand = profile(baseline), profile(candidate)
-    wins = sum(c > b for c, b in zip(cand["periods"], base["periods"]))
+    wins = sum(c > b for c, b in zip(cand["period_sharpes"], base["period_sharpes"]))
+    target = min(base["annual_return_pct"], baseline.annual_target * 100)
     checks = {
-        "better_sharpe_in_2_of_3_periods": wins >= 2,
-        "latest_period_not_worse": cand["periods"][-1] >= base["periods"][-1] - 0.05,
-        "drawdown_not_worse_by_2pts": cand["max_drawdown_pct"] >= base["max_drawdown_pct"] - 2,
-        "better_with_hard_fills": cand["hard_fill_annual_return_pct"] > base["hard_fill_annual_return_pct"],
+        "better_sharpe_in_2_of_3_periods": bool(wins >= 2),
+        "latest_period_sharpe_within_0.05": bool(cand["period_sharpes"][-1] >= base["period_sharpes"][-1] - 0.05),
+        "drawdown_not_worse_by_2pts": bool(cand["max_drawdown_pct"] >= base["max_drawdown_pct"] - 2),
+        "hard_fill_sharpe_not_worse": bool(cand["hard_fill_sharpe"] >= base["hard_fill_sharpe"]),
+        "hard_fill_latest_sharpe_within_0.05": bool(
+            cand["hard_fill_latest_sharpe"] >= base["hard_fill_latest_sharpe"] - 0.05),
+        "return_at_least_target_or_baseline": bool(cand["annual_return_pct"] >= target),
     }
-    return {"baseline": base, "candidate": cand, "checks": checks, "passed": all(checks.values())}
+    rounded = lambda p: {k: [round(x, 2) for x in v] if isinstance(v, list) else round(float(v), 2) for k, v in p.items()}
+    return {"baseline": rounded(base), "candidate": rounded(cand), "checks": checks, "passed": all(checks.values())}
 
 
 if __name__ == "__main__":
@@ -148,7 +166,9 @@ if __name__ == "__main__":
         print("walk-forward:", summarize(oos))
         print("deflated Sharpe probability:", round(deflated_sharpe(oos, rets.apply(sharpe)), 3))
     elif a.command == "gate":
-        result = gate(load_daily(cfg.product), cfg, load_trend_config(a.candidate), a.start)
+        if not a.candidate:
+            ap.error("gate needs --candidate FILE")
+        result = gate(load_daily(cfg.product), cfg, load_trend_config(a.candidate))
         for key in ("baseline", "candidate", "checks"):
             print(f"{key}: {result[key]}")
         print("PASSED" if result["passed"] else "REJECTED")
@@ -156,6 +176,8 @@ if __name__ == "__main__":
         state = run(load_daily(cfg.product), cfg, start=a.start)
         m = metrics(state, cfg)
         t = pd.DataFrame(state["trades"])
+        if t.empty or t["notional"].sum() == 0:
+            raise SystemExit("No trades in this window, so there is no turnover to project")
         share = t.loc[t["type"] == "maker", "notional"].sum() / t["notional"].sum()
         print(f"turnover {m['turnover_per_year']}x per year, {share:.0%} of traded value at the maker fee")
         print(fee_projection(cfg, m["turnover_per_year"], share).to_string(index=False))

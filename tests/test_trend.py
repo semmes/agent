@@ -94,10 +94,44 @@ def test_fill_buffer_requires_price_to_trade_through_the_limit():
     assert s["trades"][-1]["type"] == "taker"
 
 
-def test_gate_rejects_a_candidate_that_is_not_better():
-    c, cfg = prices(), TrendConfig()
-    same = gate(c, cfg, replace(cfg), start="2020-01-01")
-    assert not same["passed"]
+def test_missed_order_is_cancelled_and_todays_target_is_used():
+    cfg = TrendConfig(execution="maker_first")
+    s = new_state(cfg)
+    step(s, "2026-01-01", bar(100.0), 1.0, cfg)  # buy rests at 100
+    step(s, "2026-01-02", bar(105.0, high=106.0, low=101.0), 0.0, cfg)  # missed; target is now 0
+    assert s["qty"] == 0 and s["trades"] == [] and s["pending"] is None  # nothing chased
+
+
+def test_switching_to_taker_cancels_a_resting_order():
+    s = new_state(TrendConfig())
+    step(s, "2026-01-01", bar(100.0), 1.0, TrendConfig(execution="maker_first"))
+    assert s["pending"]
+    step(s, "2026-01-02", bar(100.0, low=90.0), 1.0, TrendConfig(execution="taker"))
+    assert s["pending"] is None and len(s["trades"]) == 1 and s["trades"][0]["type"] == "taker"
+
+
+def gate_prices():
+    return prices(n=3900, seed=5).set_axis(pd.date_range("2016-03-12", periods=3900, freq="D"))
+
+
+def test_gate_checks_and_input_validation():
+    c, cfg = gate_prices(), TrendConfig()
+    same = gate(c, cfg, replace(cfg))
+    assert not same["passed"] and not same["checks"]["better_sharpe_in_2_of_3_periods"]
+    assert same["checks"]["drawdown_not_worse_by_2pts"] and same["checks"]["hard_fill_sharpe_not_worse"]
+    assert all(type(v) is bool for v in same["checks"].values())
+    timid = gate(c, cfg, replace(cfg, target_vol=0.01))  # barely invested: fails the return check
+    assert not timid["checks"]["return_at_least_target_or_baseline"]
+    with pytest.raises(ValueError):
+        gate(c, cfg, replace(cfg, product="ETH-USD"))
+    with pytest.raises(ValueError):
+        gate(c.loc["2020":], cfg, replace(cfg))
+
+
+def test_missing_config_file_is_an_error():
+    from tradebot.trend import load_trend_config
+    with pytest.raises(FileNotFoundError):
+        load_trend_config("/nonexistent/trend.yaml")
 
 
 def test_walk_forward_uses_only_past_years():

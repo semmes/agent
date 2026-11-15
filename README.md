@@ -110,9 +110,11 @@ trades about 5 times the account value per year, so with the account compounding
 | 20 | $191,688 | $79,870 | 0.30% | 1.5% |
 
 Growth alone does not reach a lower tier for about ten years. Resting limit orders
-(`execution: maker_first`) halve the fee cost and lift the return to about 26% if they fill
-easily, but if price must trade 0.5% through the order the return falls to 23%, below trading
-at once. The promotion gate rejected the change, so the paper track pays the taker fee.
+(`execution: maker_first`) cut the fee cost from 3.6% to about 2% a year and lift the return to
+about 26% if they fill easily. If price must trade 1% through an order before it counts as
+filled, the result since 2023 is worse than trading at once (15.5% against 17.3% a year). A
+backtest cannot establish the real fill rate, so the promotion gate rejected the change and the
+paper track pays the taker fee.
 
 ## How the agent is improved
 

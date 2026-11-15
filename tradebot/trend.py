@@ -63,6 +63,8 @@ class TrendConfig:
 
 
 def load_trend_config(path: str | Path | None = None) -> TrendConfig:
+    if path and not Path(path).exists():
+        raise FileNotFoundError(f"No trend config at {path}")
     path = Path(path) if path else ROOT / "trend.yaml"
     return TrendConfig(**(yaml.safe_load(path.read_text()) or {})) if path.exists() else TrendConfig()
 
@@ -122,13 +124,19 @@ def step(s: dict, date: str, bar: dict, target: float, cfg: TrendConfig) -> None
     cutoff = (pd.Timestamp(date) - pd.Timedelta(days=30)).strftime("%Y-%m-%d")
     s["volume"] = [v for v in s["volume"] if v[0] > cutoff]
 
+    # A resting order was placed at the previous close. It fills only if today's range traded
+    # through it. If it did not, it is cancelled and today's decision below is made afresh, on
+    # today's target, and executed at once: an old target is never chased at a new price.
     order, s["pending"] = s.get("pending"), None
-    if order:  # placed at the previous close; filled only if today's range traded through it
+    missed = False
+    if order and cfg.execution == "maker_first":
         if order["side"] == "buy":
             filled = bar["low"] < order["limit"] * (1 - cfg.fill_buffer)
         else:
             filled = bar["high"] > order["limit"] * (1 + cfg.fill_buffer)
-        _trade(s, date, order["limit"] if filled else price, order["target"], filled, cfg)
+        if filled:
+            _trade(s, date, order["limit"], order["target"], True, cfg)
+        missed = not filled
 
     equity = s["cash"] + s["qty"] * price
     if s["paused_until"]:
@@ -146,7 +154,7 @@ def step(s: dict, date: str, bar: dict, target: float, cfg: TrendConfig) -> None
     current = s["qty"] * price / equity if equity > 0 else 0.0
     gap = target - current
     if abs(gap) >= cfg.rebalance_band or (target == 0 and current > 0):
-        if tripped or s["paused_until"] or cfg.execution == "taker":
+        if tripped or s["paused_until"] or missed or cfg.execution == "taker":
             _trade(s, date, price, target, False, cfg)  # safety exits never wait for a fill
         else:
             s["pending"] = {"side": "buy" if gap > 0 else "sell", "limit": price, "target": target}

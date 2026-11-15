@@ -28,8 +28,11 @@ settings; it does not and cannot retrain the AI model. Run one cycle a week, or 
    do not re-test something already rejected unless the reason for rejection has changed.
 4. **Test.** Write the candidate as a copy of `trend.yaml` and run
    `python -m tradebot.quant gate --candidate FILE`. The gate requires a better Sharpe ratio in
-   two of three periods, no worse in the latest period, drawdown no more than 2 points worse, and
-   still better when fills are assumed hard to get. Code changes also need tests.
+   two of three periods, a latest-period Sharpe within 0.05 of the current one, drawdown no more
+   than 2 points worse, a return at least the 20% target (or the current return if lower), and
+   the same Sharpe tests to hold when resting orders are assumed hard to fill (price must trade
+   1% through them). Code changes also need tests. Do not loosen the gate to pass a candidate;
+   record any change to the gate itself in the log.
 5. **Delegate two independent checks** for anything that passes, using sub-agents that did not
    write the change. Use a cheaper model (Opus) for these to save usage:
    - a code review of the diff for look-ahead, accounting and state-compatibility defects;
