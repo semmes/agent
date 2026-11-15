@@ -26,7 +26,7 @@ GRID = {
 }
 
 
-def grid_returns(close: pd.Series, base: TrendConfig, start: str) -> pd.DataFrame:
+def grid_returns(close: pd.DataFrame, base: TrendConfig, start: str) -> pd.DataFrame:
     """Daily returns of every rule set in the grid, one column each."""
     cols = {}
     for values in itertools.product(*GRID.values()):
@@ -74,16 +74,18 @@ def summarize(r: pd.Series) -> dict:
             "max_drawdown_pct": round((eq / eq.cummax() - 1).min() * 100, 1), "sharpe": round(sharpe(r), 2)}
 
 
-def fee_projection(cfg: TrendConfig, turnover: float, years: int = 20) -> pd.DataFrame:
-    """Fee tier by year if the account compounds at the annual target."""
-    col = 1 if cfg.order_side == "maker" else 2
+def fee_projection(cfg: TrendConfig, turnover: float, maker_share: float = 0.0, years: int = 20) -> pd.DataFrame:
+    """Fee tier by year if the account compounds at the annual target. `maker_share` is the
+    share of traded value filled at the maker fee."""
     rows = []
     for y in range(0, years + 1):
         equity = cfg.starting_cash * (1 + cfg.annual_target) ** y
         monthly = equity * turnover / 12
         tier = [t for t in FEE_TIERS if monthly >= t[0]][-1]
+        blended = maker_share * tier[1] + (1 - maker_share) * tier[2]
         rows.append({"year": y, "account": round(equity), "volume_per_month": round(monthly),
-                     "fee_rate_pct": tier[col] * 100, "fee_drag_pct_per_year": round(tier[col] * turnover * 100, 2)})
+                     "maker_fee_pct": tier[1] * 100, "taker_fee_pct": tier[2] * 100,
+                     "fee_drag_pct_per_year": round(blended * turnover * 100, 2)})
     return pd.DataFrame(rows)
 
 
@@ -121,8 +123,12 @@ if __name__ == "__main__":
         print("walk-forward:", summarize(oos))
         print("deflated Sharpe probability:", round(deflated_sharpe(oos, rets.apply(sharpe)), 3))
     elif a.command == "fees":
-        m = metrics(run(load_daily(cfg.product), cfg, start=a.start), cfg)
-        print(fee_projection(cfg, m["turnover_per_year"]).to_string(index=False))
+        state = run(load_daily(cfg.product), cfg, start=a.start)
+        m = metrics(state, cfg)
+        t = pd.DataFrame(state["trades"])
+        share = t.loc[t["type"] == "maker", "notional"].sum() / t["notional"].sum()
+        print(f"turnover {m['turnover_per_year']}x per year, {share:.0%} of traded value at the maker fee")
+        print(fee_projection(cfg, m["turnover_per_year"], share).to_string(index=False))
     else:
         from .data import load_cached
         print(intraday_momentum(load_cached(cfg.product)).to_string(index=False))

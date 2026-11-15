@@ -8,5 +8,5 @@ target_vol: 0.25           # position shrinks when the market is more volatile t
 rebalance_band: 0.20       # trade only when exposure is off by 20% of the account
 drawdown_limit: 0.15       # go flat and pause 30 days at -15% from the peak
 pause_days: 30
-order_side: taker          # conservative: assumes every order pays the higher fee
+execution: maker_first     # rest a limit order for a day (maker fee); if unfilled, pay the taker fee
 slippage: 0.0005
