@@ -35,14 +35,14 @@ class Config:
     granularity: int = 900  # seconds per bar
 
     daily_target: float = 0.01  # stop trading for the day at +1%
-    daily_loss_cap: float = 0.005  # stop trading for the day at -0.5%
+    daily_loss_cap: float = 0.01  # stop trading for the day at -1%
     weekly_loss_shutdown: float = 0.05  # shut the agent down at -5% on the week
     risk_per_trade: float = 0.005  # share of day-start equity risked per trade
     max_trades_per_day: int = 2
     min_stop_frac: float = 0.003
 
-    maker_fee: float = 0.004
-    taker_fee: float = 0.006
+    maker_fee: float = 0.005
+    taker_fee: float = 0.009
     slippage: float = 0.0005  # applied to market orders and stop exits
     entry_order: str = "limit"  # "limit" (maker fee, may not fill) | "market"
 

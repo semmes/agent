@@ -22,6 +22,7 @@ GRID = {
     "stop_atr": [3.0, 6.0, 10.0],
     "trail_atr": [0.0, 6.0, 10.0],
     "entry_order": ["limit"],
+    "risk_per_trade": [0.005, 0.01],
 }
 
 _candles: dict[str, pd.DataFrame] = {}
@@ -45,7 +46,7 @@ def _evaluate(args: tuple[Config, dict, str]) -> dict:
         stop_atr=combo["stop_atr"],
         trail_atr=combo["trail_atr"],
     )
-    cfg = replace(base, strategy=strat, entry_order=combo["entry_order"])
+    cfg = replace(base, strategy=strat, entry_order=combo["entry_order"], risk_per_trade=combo["risk_per_trade"])
     tune = backtest(_candles, cfg, end=split)
     test = backtest(_candles, cfg, start=split)
     row = {k: (v if k != "ema" else "/".join(map(str, v))) for k, v in combo.items()}

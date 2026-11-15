@@ -5,7 +5,8 @@ from tradebot.engine import Bar, Engine
 
 
 def cfg(**kw):
-    base = dict(products=["BTC-USD"], entry_order="market", slippage=0.0, maker_fee=0.004, taker_fee=0.006)
+    base = dict(products=["BTC-USD"], entry_order="market", slippage=0.0, maker_fee=0.004, taker_fee=0.006,
+                daily_loss_cap=0.005, risk_per_trade=0.005)
     base.update(kw)
     return Config(**base)
 
