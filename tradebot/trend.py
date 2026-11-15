@@ -48,22 +48,30 @@ class TrendConfig:
     rebalance_band: float = 0.10  # trade only when exposure is off by this share of equity
     drawdown_limit: float = 0.15  # go flat and pause when equity falls this far from its peak
     pause_days: int = 30
-    order_side: str = "taker"  # fee column used: "taker" is the conservative assumption
+    # "maker_first": rest a limit order at the closing price for one day (maker fee). If it does
+    # not fill it is cancelled, and the next close's own decision trades at once (taker fee).
+    # "taker": always trade at once at the taker fee.
+    execution: str = "taker"
+    fill_buffer: float = 0.001  # a resting order only counts as filled if price trades this far through it
     slippage: float = 0.0005
     fee_tiers: list = field(default_factory=lambda: [list(t) for t in FEE_TIERS])
 
     def __post_init__(self) -> None:
         if self.product not in ALLOWED_PRODUCTS:
             raise ValueError(f"{self.product} is not on the allowlist")
+        if self.execution not in ("maker_first", "taker"):
+            raise ValueError("execution must be 'maker_first' or 'taker'")
 
 
 def load_trend_config(path: str | Path | None = None) -> TrendConfig:
+    if path and not Path(path).exists():
+        raise FileNotFoundError(f"No trend config at {path}")
     path = Path(path) if path else ROOT / "trend.yaml"
     return TrendConfig(**(yaml.safe_load(path.read_text()) or {})) if path.exists() else TrendConfig()
 
 
-def fee_rate(volume_30d: float, cfg: TrendConfig) -> float:
-    col = 1 if cfg.order_side == "maker" else 2
+def fee_rate(volume_30d: float, cfg: TrendConfig, maker: bool = False) -> float:
+    col = 1 if maker else 2
     rate = cfg.fee_tiers[0][col]
     for tier in cfg.fee_tiers:
         if volume_30d >= tier[0]:
@@ -83,11 +91,54 @@ def target_weights(close: pd.Series, cfg: TrendConfig) -> pd.Series:
 
 def new_state(cfg: TrendConfig) -> dict:
     return {"cash": cfg.starting_cash, "qty": 0.0, "peak": cfg.starting_cash, "paused_until": "",
-            "last_date": "", "volume": [], "days": [], "trades": [], "breaker_trips": 0}
+            "last_date": "", "volume": [], "days": [], "trades": [], "breaker_trips": 0, "pending": None}
 
 
-def step(s: dict, date: str, price: float, target: float, cfg: TrendConfig) -> None:
-    """Process one daily close: apply the drawdown breaker, then rebalance if needed."""
+def _trade(s: dict, date: str, price: float, target: float, maker: bool, cfg: TrendConfig) -> None:
+    """Move exposure to `target` at `price`. Maker fills pay the maker fee and no slippage."""
+    rate = fee_rate(sum(v[1] for v in s["volume"]), cfg, maker)
+    slip = 0.0 if maker else cfg.slippage
+    equity = s["cash"] + s["qty"] * price
+    gap = target - (s["qty"] * price / equity if equity > 0 else 0.0)
+    if gap > 0:
+        notional = min(gap * equity, s["cash"] / (1 + rate))  # never more than cash: no margin
+        s["qty"] += notional / (price * (1 + slip))
+        s["cash"] -= notional * (1 + rate)
+        side = "buy"
+    else:
+        qty = s["qty"] if target == 0 else min(s["qty"], -gap * equity / price)
+        notional = qty * price * (1 - slip)
+        s["qty"] -= qty
+        s["cash"] += notional * (1 - rate)
+        side = "sell"
+    if notional > 0:
+        s["volume"].append([date, round(notional, 2)])
+        s["trades"].append({"date": date, "side": side, "price": round(price, 2),
+                            "notional": round(notional, 2), "fee": round(notional * rate, 2),
+                            "fee_rate": rate, "type": "maker" if maker else "taker"})
+
+
+def step(s: dict, date: str, bar: dict, target: float, cfg: TrendConfig) -> None:
+    """Process one closed daily bar (`close`, `high`, `low`): settle any resting order,
+    apply the drawdown breaker, then rebalance if needed."""
+    price = bar["close"]
+    cutoff = (pd.Timestamp(date) - pd.Timedelta(days=30)).strftime("%Y-%m-%d")
+    s["volume"] = [v for v in s["volume"] if v[0] > cutoff]
+
+    # A resting order was placed at the previous close. It fills only if today's range traded
+    # through it. If it did not, it is cancelled and today's decision below is made afresh, on
+    # today's target, and executed at once: an old target is never chased at a new price.
+    order, s["pending"] = s.get("pending"), None
+    missed = False
+    if order and cfg.execution == "maker_first":
+        if order["side"] == "buy":
+            filled = bar["low"] < order["limit"] * (1 - cfg.fill_buffer)
+        else:
+            filled = bar["high"] > order["limit"] * (1 + cfg.fill_buffer)
+        if filled:
+            _trade(s, date, order["limit"], order["target"], True, cfg)
+        missed = not filled
+
     equity = s["cash"] + s["qty"] * price
     if s["paused_until"]:
         if date < s["paused_until"]:
@@ -95,47 +146,34 @@ def step(s: dict, date: str, price: float, target: float, cfg: TrendConfig) -> N
         else:
             s["paused_until"], s["peak"] = "", equity  # resume with a fresh high-water mark
     s["peak"] = max(s["peak"], equity)
-    if not s["paused_until"] and equity <= s["peak"] * (1 - cfg.drawdown_limit):
+    tripped = not s["paused_until"] and equity <= s["peak"] * (1 - cfg.drawdown_limit)
+    if tripped:
         target = 0.0
         s["paused_until"] = (pd.Timestamp(date) + pd.Timedelta(days=cfg.pause_days)).strftime("%Y-%m-%d")
         s["breaker_trips"] += 1
 
-    cutoff = (pd.Timestamp(date) - pd.Timedelta(days=30)).strftime("%Y-%m-%d")
-    s["volume"] = [v for v in s["volume"] if v[0] > cutoff]
-    rate = fee_rate(sum(v[1] for v in s["volume"]), cfg)
-
     current = s["qty"] * price / equity if equity > 0 else 0.0
     gap = target - current
     if abs(gap) >= cfg.rebalance_band or (target == 0 and current > 0):
-        if gap > 0:
-            spend = min(gap * equity, s["cash"] / (1 + rate))  # never more than cash: no margin
-            s["qty"] += spend / (price * (1 + cfg.slippage))
-            s["cash"] -= spend * (1 + rate)
-            notional, side = spend, "buy"
+        if tripped or s["paused_until"] or missed or cfg.execution == "taker":
+            _trade(s, date, price, target, False, cfg)  # safety exits never wait for a fill
         else:
-            qty = s["qty"] if target == 0 else min(s["qty"], -gap * equity / price)
-            notional = qty * price * (1 - cfg.slippage)
-            s["qty"] -= qty
-            s["cash"] += notional * (1 - rate)
-            side = "sell"
-        if notional > 0:
-            s["volume"].append([date, round(notional, 2)])
-            s["trades"].append({"date": date, "side": side, "price": round(price, 2),
-                                "notional": round(notional, 2), "fee": round(notional * rate, 2),
-                                "fee_rate": rate})
+            s["pending"] = {"side": "buy" if gap > 0 else "sell", "limit": price, "target": target}
     equity = s["cash"] + s["qty"] * price
     s["days"].append({"date": date, "equity": round(equity, 2),
                       "weight": round(s["qty"] * price / equity, 3) if equity > 0 else 0.0})
     s["last_date"] = date
 
 
-def run(close: pd.Series, cfg: TrendConfig, state: dict | None = None, start=None, end=None) -> dict:
+def run(candles: pd.DataFrame, cfg: TrendConfig, state: dict | None = None, start=None, end=None) -> dict:
+    """Feed daily candles (columns close, high, low) through the strategy."""
     s = state or new_state(cfg)
-    w = target_weights(close, cfg).loc[start:end].dropna()
+    w = target_weights(candles["close"], cfg).loc[start:end].dropna()
+    bars = candles.loc[w.index, ["close", "high", "low"]].to_dict("index")
     for ts, target in w.items():
         date = ts.strftime("%Y-%m-%d")
         if date > s["last_date"]:
-            step(s, date, float(close[ts]), float(target), cfg)
+            step(s, date, bars[ts], float(target), cfg)
     return s
 
 
@@ -167,10 +205,10 @@ def metrics(s: dict, cfg: TrendConfig) -> dict:
     }
 
 
-def load_daily(product: str) -> pd.Series:
+def load_daily(product: str) -> pd.DataFrame:
     df = pd.read_csv(cache_path(product, DAY), index_col="time", parse_dates=True)
     df.index = pd.to_datetime(df.index, utc=True).tz_localize(None)
-    return df["close"]
+    return df
 
 
 # ---- paper trading -------------------------------------------------------
@@ -184,6 +222,9 @@ def render(s: dict, cfg: TrendConfig) -> str:
     mtd = (now / (eq[eq.index < month.index[0]].iloc[-1] if len(eq) > len(month) else cfg.starting_cash) - 1) * 100
     status = f"paused until {s['paused_until']} (drawdown breaker)" if s["paused_until"] else \
         f"{s['days'][-1]['weight'] * 100:.0f}% in {cfg.product}"
+    if s.get("pending"):
+        o = s["pending"]
+        status += f"; resting limit {o['side']} at {o['limit']:,.2f} toward {o['target'] * 100:.0f}%"
     fees = sum(t["fee"] for t in s["trades"])
     out = [
         "# Trend track (paper)", "",
@@ -196,7 +237,7 @@ def render(s: dict, cfg: TrendConfig) -> str:
     ]
     if s["trades"]:
         out += ["| Date | Side | Price | Value $ | Fee $ | Fee rate |", "|---|---|---|---|---|---|"]
-        out += [f"| {t['date']} | {t['side']} | {t['price']:,.2f} | {t['notional']:,.2f} | {t['fee']:.2f} | {t['fee_rate'] * 100:.2f}% |"
+        out += [f"| {t['date']} | {t['side']} | {t['price']:,.2f} | {t['notional']:,.2f} | {t['fee']:.2f} | {t['fee_rate'] * 100:.2f}% {t.get('type', '')} |"
                 for t in reversed(s["trades"])]
     return "\n".join(out) + "\n"
 
@@ -207,7 +248,7 @@ def paper_tick(directory: Path, cfg: TrendConfig, now: int | None = None) -> dic
     path = directory / "state.json"
     end = now // DAY * DAY  # only fully closed daily candles
     warmup = (max(cfg.ma_windows) + cfg.vol_window + 10) * DAY
-    close = fetch_candles(cfg.product, end - warmup, end, DAY)["close"]
+    close = fetch_candles(cfg.product, end - warmup, end, DAY)
     close.index = close.index.tz_localize(None)
     if path.exists():
         s = json.loads(path.read_text())
