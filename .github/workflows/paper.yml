@@ -2,7 +2,9 @@ name: Paper trading
 
 on:
   schedule:
-    - cron: "7 * * * *" # hourly; bars are replayed, so a late run loses nothing
+    # GitHub runs schedules on a best-effort basis and skips many of them on quiet repos, so two
+    # slots an hour are requested. Bars are replayed, so a late or skipped run loses nothing.
+    - cron: "7,37 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -56,15 +58,30 @@ jobs:
       - name: Job summary
         run: cat paper/report.md paper/trend/report.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Post the daily result to the log issue
-        if: hashFiles('paper/daily.md') != ''
+      - name: Post alerts and the daily result to the log issue
+        if: hashFiles('paper/daily.md', 'paper/alert.md', 'paper/trend/alert.md') != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          { echo; echo "---"; head -n 9 paper/trend/report.md; } >> paper/daily.md
           n=$(gh issue list --state open --search "Paper trading daily log in:title" --json number -q '.[0].number')
-          if [ -z "$n" ]; then
-            gh issue create --title "Paper trading daily log" --body-file paper/daily.md
-          else
-            gh issue comment "$n" --body-file paper/daily.md
+          post() {
+            if [ -z "$n" ]; then
+              n=$(gh issue create --title "Paper trading daily log" --body-file "$1" | grep -o '[0-9]*$')
+            else
+              gh issue comment "$n" --body-file "$1"
+            fi
+          }
+          # An alert is deleted from the state branch only after it has been posted, so a failed
+          # post leaves it in place for the next run to retry.
+          for f in alert.md trend/alert.md; do
+            if [ -f "paper/$f" ]; then
+              post "paper/$f"
+              git -C paper rm -q "$f"
+              git -C paper commit -q -m "Alert posted: $f"
+              git -C paper push -q origin paper-state
+            fi
+          done
+          if [ -f paper/daily.md ]; then
+            { echo; echo "---"; head -n 9 paper/trend/report.md; } >> paper/daily.md
+            post paper/daily.md
           fi

@@ -165,10 +165,12 @@ def step(s: dict, date: str, bar: dict, target: float, cfg: TrendConfig) -> None
     s["last_date"] = date
 
 
-def run(candles: pd.DataFrame, cfg: TrendConfig, state: dict | None = None, start=None, end=None) -> dict:
-    """Feed daily candles (columns close, high, low) through the strategy."""
+def run(candles: pd.DataFrame, cfg: TrendConfig, state: dict | None = None, start=None, end=None,
+        weights: pd.Series | None = None) -> dict:
+    """Feed daily candles (columns close, high, low) through the strategy. `weights` replaces
+    the built-in trend signal with another target-exposure series (research use)."""
     s = state or new_state(cfg)
-    w = target_weights(candles["close"], cfg).loc[start:end].dropna()
+    w = (target_weights(candles["close"], cfg) if weights is None else weights).loc[start:end].dropna()
     bars = candles.loc[w.index, ["close", "high", "low"]].to_dict("index")
     for ts, target in w.items():
         date = ts.strftime("%Y-%m-%d")
@@ -256,10 +258,18 @@ def paper_tick(directory: Path, cfg: TrendConfig, now: int | None = None) -> dic
         s = new_state(cfg)
         s["last_date"] = close.index[-1].strftime("%Y-%m-%d")
         s["days"].append({"date": s["last_date"], "equity": cfg.starting_cash, "weight": 0.0})
-    before = s["last_date"]
+    before, trips = s["last_date"], s["breaker_trips"]
     run(close, cfg, s)
     path.write_text(json.dumps(s, indent=1))
     (directory / "report.md").write_text(render(s, cfg))
+    # Written when the breaker trips. The workflow deletes it only after posting it, so a failed
+    # post is retried on the next run instead of being lost.
+    if s["breaker_trips"] > trips:
+        until = f"is paused until {s['paused_until']}" if s["paused_until"] else f"paused for {cfg.pause_days} days"
+        (directory / "alert.md").write_text(
+            f"### ALERT: trend track drawdown breaker tripped\n\nEquity fell {cfg.drawdown_limit * 100:.0f}% or more "
+            f"below its peak (now ${s['days'][-1]['equity']:,.2f}). The track sold everything and {until}. "
+            f"Breaker trips so far: {s['breaker_trips']}.\n")
     return {"equity": s["days"][-1]["equity"], "new_day": s["last_date"] != before}
 
 

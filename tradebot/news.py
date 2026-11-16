@@ -97,4 +97,5 @@ def assess(model: str, max_age_hours: float = 6) -> dict:
     else:
         verdict, scorer = score_keywords(headlines), "keywords"
     block = verdict.risk == "high" or (verdict.risk == "elevated" and verdict.direction == "bearish")
-    return {**verdict.model_dump(), "block": block, "scorer": scorer, "headlines": len(headlines)}
+    return {**verdict.model_dump(), "block": block, "scorer": scorer, "headlines": len(headlines),
+            "titles": [f"[{h['source']}] {h['title']}" for h in headlines]}
