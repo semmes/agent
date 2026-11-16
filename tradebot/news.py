@@ -6,19 +6,38 @@ list is used. Headlines are untrusted text and are treated as data only.
 """
 from __future__ import annotations
 
+import calendar
 import os
 import time
+from collections import Counter
 from typing import Literal
 
 import feedparser
 import requests
 from pydantic import BaseModel
 
+GOOGLE_NEWS = "https://news.google.com/rss/search?hl=en-US&gl=US&ceid=US:en&q="
+
+# Crypto-specific feeds: every headline is relevant.
 FEEDS = {
     "CoinDesk": "https://www.coindesk.com/arc/outboundfeeds/rss/",
     "Cointelegraph": "https://cointelegraph.com/rss",
     "Federal Reserve": "https://www.federalreserve.gov/feeds/press_all.xml",
 }
+# General feeds: free headline-only sources. Most headlines are about other things, so the
+# keyword scorer only counts those that also mention a market term (see MARKET_WORDS).
+GENERAL_FEEDS = {
+    "CNBC Top News": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+    "CNBC Finance": "https://www.cnbc.com/id/10000664/device/rss/rss.html",
+    # Google News returns titles only, each labelled with its publisher (Reuters, Bloomberg, ...).
+    "Google News": GOOGLE_NEWS + "(bitcoin+OR+ethereum+OR+crypto)+when:6h",
+    "Google News wires": GOOGLE_NEWS + "(bitcoin+OR+crypto+OR+%22Federal+Reserve%22)"
+                         "+(site:reuters.com+OR+site:bloomberg.com+OR+site:cnbc.com)+when:6h",
+}
+MARKET_WORDS = (
+    "bitcoin", "btc", "ethereum", "ether ", "crypto", "stablecoin", "tether", "usdc", "coinbase",
+    "binance", "kraken", " etf", "federal reserve", "the fed", "fomc", "rate cut", "rate hike",
+)
 
 RISK_WORDS = (
     "hack", "exploit", "stolen", "insolven", "bankrupt", "halts withdrawals", "suspends withdrawals",
@@ -42,25 +61,48 @@ class Verdict(BaseModel):
     reason: str
 
 
-def fetch_headlines(max_age_hours: float = 6, feeds: dict[str, str] = FEEDS) -> list[dict]:
-    cutoff = time.time() - max_age_hours * 3600
+def parse_feed(source: str, body: bytes, general: bool, cutoff: float) -> list[dict]:
     items = []
-    for source, url in feeds.items():
-        try:
-            body = requests.get(url, timeout=20, headers={"User-Agent": "rss-reader"}).content
-        except requests.RequestException:
-            continue  # a feed being down must not stop trading
-        for e in feedparser.parse(body).entries:
-            when = e.get("published_parsed") or e.get("updated_parsed")
-            ts = time.mktime(when) - time.timezone if when else time.time()
-            if ts >= cutoff and e.get("title"):
-                items.append({"source": source, "title": e["title"].strip()[:300], "ts": int(ts)})
-    return sorted(items, key=lambda i: -i["ts"])[:60]
+    for e in feedparser.parse(body).entries:
+        when = e.get("published_parsed") or e.get("updated_parsed")
+        if not when or not e.get("title"):
+            continue  # undated items could be old news; skip them
+        ts = calendar.timegm(when)
+        if ts < cutoff:
+            continue
+        publisher = (e.get("source") or {}).get("title") if source.startswith("Google News") else None
+        items.append({"source": publisher or source, "title": e["title"].strip()[:300], "ts": int(ts),
+                      "general": general})
+    return items
+
+
+def fetch_headlines(max_age_hours: float = 6, feeds: dict[str, str] | None = None,
+                    general_feeds: dict[str, str] | None = None) -> list[dict]:
+    cutoff = time.time() - max_age_hours * 3600
+    feeds = FEEDS if feeds is None else feeds
+    general_feeds = GENERAL_FEEDS if general_feeds is None else general_feeds
+    items = []
+    for group, general in ((feeds, False), (general_feeds, True)):
+        for source, url in group.items():
+            try:
+                body = requests.get(url, timeout=20, headers={"User-Agent": "rss-reader"}).content
+            except requests.RequestException:
+                continue  # a feed being down must not stop trading
+            items.extend(parse_feed(source, body, general, cutoff))
+    seen, unique = set(), []
+    for item in sorted(items, key=lambda i: -i["ts"]):
+        key = item["title"].lower()[:80]  # the same story often arrives through two feeds
+        if key not in seen:
+            seen.add(key)
+            unique.append(item)
+    return unique[:80]
 
 
 def score_keywords(headlines: list[dict]) -> Verdict:
     for h in headlines:
         title = h["title"].lower()
+        if h.get("general") and not any(w in title for w in MARKET_WORDS):
+            continue  # a general-news headline that is not about crypto or the Fed
         hit = next((w for w in RISK_WORDS if w in title), None)
         if hit:
             return Verdict(risk="high", direction="bearish", reason=f"Keyword '{hit.strip()}': {h['title']}")
@@ -98,4 +140,5 @@ def assess(model: str, max_age_hours: float = 6) -> dict:
         verdict, scorer = score_keywords(headlines), "keywords"
     block = verdict.risk == "high" or (verdict.risk == "elevated" and verdict.direction == "bearish")
     return {**verdict.model_dump(), "block": block, "scorer": scorer, "headlines": len(headlines),
+            "by_source": dict(Counter(h["source"] for h in headlines)),
             "titles": [f"[{h['source']}] {h['title']}" for h in headlines]}

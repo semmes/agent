@@ -67,6 +67,7 @@ def tick(directory: Path, cfg: Config, now: int | None = None, check_news: bool 
             with open(directory / "news_log.jsonl", "a") as log:  # full history with headlines, for research
                 log.write(json.dumps(verdict) + "\n")
             verdict.pop("titles", None)
+            verdict.pop("by_source", None)
             meta["news"] = (meta["news"] + [verdict])[-200:]
             if verdict["block"]:
                 meta["news_block_until"] = now + cfg.news_block_hours * 3600
