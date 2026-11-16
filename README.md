@@ -117,6 +117,26 @@ since 2023 (15.5% against 17.3% a year); at 0.5% it is slightly ahead since 2023
 outcome turns on a fill rate a backtest cannot establish, so the promotion gate rejected the
 change and the paper track pays the taker fee.
 
+## A model trained on historical patterns
+
+`python -m tradebot.ml` trains a model on 18 price indicators to predict whether Bitcoin is
+higher five days later. Each year it is refitted on all earlier days and then tested on that
+year, so every prediction is for a day it has not seen (2018 to 2026).
+
+| | Return per year | Worst drawdown | Right about direction |
+|---|---|---|---|
+| Trend rules (current) | 18.3% | -21.9% | |
+| Logistic regression alone | 2.2% | -38.0% | 51.0% |
+| Gradient boosting alone | -9.7% | -67.3% | 49.9% |
+| Trend rules, only when logistic regression agrees | 14.4% | -30.7% | |
+| Trend rules, only when gradient boosting agrees | 4.2% | -41.6% | |
+
+Always guessing "up" is right 51.8% of the time, so neither model has skill on unseen data. The
+simple trend rules stay. News cannot be included in this training because there is no free
+archive of past headlines; every hourly news reading is now saved to `news_log.jsonl` on the
+`paper-state` branch so that it can be tested once a few months have accumulated.
+Needs `pip install -r requirements-research.txt`.
+
 ## How the agent is improved
 
 `IMPROVEMENT.md` is the standing process: a weekly cycle audits both paper tracks, tests at most

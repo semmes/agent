@@ -165,10 +165,12 @@ def step(s: dict, date: str, bar: dict, target: float, cfg: TrendConfig) -> None
     s["last_date"] = date
 
 
-def run(candles: pd.DataFrame, cfg: TrendConfig, state: dict | None = None, start=None, end=None) -> dict:
-    """Feed daily candles (columns close, high, low) through the strategy."""
+def run(candles: pd.DataFrame, cfg: TrendConfig, state: dict | None = None, start=None, end=None,
+        weights: pd.Series | None = None) -> dict:
+    """Feed daily candles (columns close, high, low) through the strategy. `weights` replaces
+    the built-in trend signal with another target-exposure series (research use)."""
     s = state or new_state(cfg)
-    w = target_weights(candles["close"], cfg).loc[start:end].dropna()
+    w = (target_weights(candles["close"], cfg) if weights is None else weights).loc[start:end].dropna()
     bars = candles.loc[w.index, ["close", "high", "low"]].to_dict("index")
     for ts, target in w.items():
         date = ts.strftime("%Y-%m-%d")
