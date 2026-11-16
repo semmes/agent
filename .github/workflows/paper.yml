@@ -56,15 +56,23 @@ jobs:
       - name: Job summary
         run: cat paper/report.md paper/trend/report.md >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Post the daily result to the log issue
-        if: hashFiles('paper/daily.md') != ''
+      - name: Post alerts and the daily result to the log issue
+        if: hashFiles('paper/daily.md', 'paper/alert.md', 'paper/trend/alert.md') != ''
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          { echo; echo "---"; head -n 9 paper/trend/report.md; } >> paper/daily.md
-          n=$(gh issue list --state open --search "Paper trading daily log in:title" --json number -q '.[0].number')
-          if [ -z "$n" ]; then
-            gh issue create --title "Paper trading daily log" --body-file paper/daily.md
-          else
-            gh issue comment "$n" --body-file paper/daily.md
+          post() {
+            n=$(gh issue list --state open --search "Paper trading daily log in:title" --json number -q '.[0].number')
+            if [ -z "$n" ]; then
+              gh issue create --title "Paper trading daily log" --body-file "$1"
+            else
+              gh issue comment "$n" --body-file "$1"
+            fi
+          }
+          for f in paper/alert.md paper/trend/alert.md; do
+            if [ -f "$f" ]; then post "$f"; fi
+          done
+          if [ -f paper/daily.md ]; then
+            { echo; echo "---"; head -n 9 paper/trend/report.md; } >> paper/daily.md
+            post paper/daily.md
           fi

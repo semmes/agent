@@ -16,6 +16,8 @@ settings; it does not and cannot retrain the AI model. Run one cycle a week, or 
 
 ## One cycle
 
+0. **Read `OWNER_NOTES.md`** before anything else, and add to it whenever the owner makes a
+   decision or is told a result.
 1. **Audit the live tracks.** Read `report.md`, `trend/report.md`, `state.json` and
    `trend/state.json` on the `paper-state` branch and the latest workflow runs. Check that ticks
    are arriving hourly, that no risk rule was breached, and that paper results are within what

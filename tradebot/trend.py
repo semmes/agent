@@ -256,10 +256,17 @@ def paper_tick(directory: Path, cfg: TrendConfig, now: int | None = None) -> dic
         s = new_state(cfg)
         s["last_date"] = close.index[-1].strftime("%Y-%m-%d")
         s["days"].append({"date": s["last_date"], "equity": cfg.starting_cash, "weight": 0.0})
-    before = s["last_date"]
+    before, trips = s["last_date"], s["breaker_trips"]
     run(close, cfg, s)
     path.write_text(json.dumps(s, indent=1))
     (directory / "report.md").write_text(render(s, cfg))
+    alert = directory / "alert.md"  # present only on the tick where the breaker trips
+    if s["breaker_trips"] > trips:
+        alert.write_text(f"### ALERT: trend track drawdown breaker tripped\n\nEquity ${s['days'][-1]['equity']:,.2f} "
+                         f"is {cfg.drawdown_limit * 100:.0f}% or more below its peak. The track sold everything and "
+                         f"is paused until {s['paused_until']}.\n")
+    elif alert.exists():
+        alert.unlink()
     return {"equity": s["days"][-1]["equity"], "new_day": s["last_date"] != before}
 
 
