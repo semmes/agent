@@ -2,7 +2,9 @@ name: Paper trading
 
 on:
   schedule:
-    - cron: "7 * * * *" # hourly; bars are replayed, so a late run loses nothing
+    # GitHub runs schedules on a best-effort basis and skips many of them on quiet repos, so two
+    # slots an hour are requested. Bars are replayed, so a late or skipped run loses nothing.
+    - cron: "7,37 * * * *"
   workflow_dispatch:
 
 permissions:

@@ -33,3 +33,13 @@ anything that can be looked up (results, code, state) belongs elsewhere.
 - 2026-11-16: a model trained on historical price patterns showed no skill on unseen years and
   did worse than the trend rules. News could not be included (no free archive); headlines are
   now being logged hourly for a later test.
+
+## How the weekly cycle runs
+
+- It runs inside the owner's original conversation (session "Daily 1% gain trading agent plan"),
+  Saturdays 2:17 pm Eastern. A version that starts a fresh session each week was tried on
+  2026-11-16 and does not work: a session started by a schedule gets no push access to the
+  repository and no pull-request tools. That schedule is disabled.
+- GitHub skips many scheduled runs of the hourly paper job (2 of about 18 fired in the first
+  day). Trading results are unaffected because every candle is replayed, but reports, alerts and
+  news readings arrive late. Two slots an hour are requested to improve the odds.
