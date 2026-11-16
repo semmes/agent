@@ -23,6 +23,12 @@ anything that can be looked up (results, code, state) belongs elsewhere.
 - Wants the agent to act on current news and indicators using a model trained on historical
   price patterns (asked 2026-11-16).
 
+- News sources (2026-11-16): add CNBC and Google News headline feeds (which carry Reuters and
+  Bloomberg titles). Bloomberg, Reuters and MT Newswires direct feeds are paid and stay out.
+- Hosting (2026-11-16): keep GitHub Actions with a free outside trigger for now. Do not choose an
+  always-on host until the agent is connected to Coinbase; the owner wants to see first whether
+  the agent can run on Coinbase's platform or whether the question resolves itself there.
+
 ## Reported to the owner
 
 - 2026-11-15: intraday rules do not overcome fees (0 of 216 rule sets profitable in both test

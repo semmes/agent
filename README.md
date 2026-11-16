@@ -24,8 +24,8 @@ before a day counts as +1%.
 1. **Trend filter:** price above a long moving average and the fast average above the slow one.
 2. **Entry:** a close above the prior 7-day high, bought with a limit order (lower maker fee).
 3. **Exit:** stop-loss 10 ATRs below entry, the daily target or loss cap, or the trend breaking.
-4. **News veto:** free RSS headlines (CoinDesk, Cointelegraph, Federal Reserve) are scored for
-   risk every hour. A high-risk reading blocks new entries for 6 hours. News never opens a trade.
+4. **News veto:** free headline feeds (CoinDesk, Cointelegraph, Federal Reserve, CNBC, and
+   Google News, which carries Reuters and Bloomberg titles) are scored for risk every run. A high-risk reading blocks new entries for 6 hours. News never opens a trade.
    With an `ANTHROPIC_API_KEY` secret the scoring is done by Claude; without one, by keywords.
 
 ## What the backtest shows
@@ -170,6 +170,27 @@ uses, starting from $5,000, and stops after 30 days.
   `trend/report.md` and acts once a day after the 7 pm Eastern daily close).
 - Each completed day is posted to an issue titled "Paper trading daily log".
 - Optional: add an `ANTHROPIC_API_KEY` repository secret for LLM news scoring.
+- GitHub skips many scheduled runs. For runs on time, see "Outside trigger" below.
 - After a weekly shutdown: `python -m tradebot.paper --reset-shutdown`.
 
 Fees in `config.yaml` are set to 0.50% maker / 0.90% taker; update them if the tier changes.
+
+## Outside trigger
+
+GitHub treats schedules as best-effort and skips many of them. A free scheduling service can
+start the run on time by calling GitHub's API:
+
+1. On GitHub: Settings (your account) -> Developer settings -> Personal access tokens ->
+   Fine-grained tokens -> Generate new token. Repository access: only `semmes/agent`.
+   Repository permissions: Actions = Read and write. Nothing else. Copy the token.
+2. On cron-job.org: create a job with
+   - URL `https://api.github.com/repos/semmes/agent/actions/workflows/paper.yml/dispatches`
+   - schedule every 30 minutes, request method POST
+   - headers `Authorization: Bearer <the token>`, `Accept: application/vnd.github+json` and
+     `Content-Type: application/json`
+   - request body `{"ref":"main"}`
+3. Run it once from cron-job.org. A response of `204` means GitHub accepted it, and a new
+   "Paper trading" run appears on the repository's Actions tab.
+
+The token can only start and read workflow runs on this one repository. It expires on the date
+chosen when creating it; the job then starts failing with `401` and needs a new token.
