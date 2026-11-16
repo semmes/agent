@@ -45,9 +45,18 @@
    "scorer": "keywords",
    "headlines": 6,
    "ts": 1794809343
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'crashes': Old crypto feud reignites: Why OKX's Star Xu blames Binance for two years of October crashes",
+   "block": true,
+   "scorer": "keywords",
+   "headlines": 18,
+   "ts": 1794837960
   }
  ],
  "finished": false,
- "updated": 1794809343,
- "news_block_until": 1794830943
+ "updated": 1794837960,
+ "news_block_until": 1794859560
 }

@@ -1,6 +1,6 @@
 # Paper trading report
 
-Updated 2026-11-16 01:09 EST. Simulated money only.
+Updated 2026-11-16 09:06 EST. Simulated money only.
 
 **Status:** Flat, waiting for a setup.
 
@@ -16,8 +16,8 @@ Updated 2026-11-16 01:09 EST. Simulated money only.
 
 ## Latest news checks
 
+- 11-16 09:06: high / bearish (entries blocked): Keyword 'crashes': Old crypto feud reignites: Why OKX's Star Xu blames Binance for two years of October crashes [keywords]
 - 11-16 01:09: high / bearish (entries blocked): Keyword 'plunge': Aster CEO suspects foul play after token plunges 32% in minutes [keywords]
 - 11-15 18:55: low / neutral: No risk keywords in recent headlines [keywords]
 - 11-15 18:32: low / neutral: No risk keywords in recent headlines [keywords]
 - 11-15 16:35: low / neutral: No risk keywords in recent headlines [keywords]
-- 11-15 14:40: low / neutral: No risk keywords in recent headlines [keywords]
