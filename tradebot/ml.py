@@ -103,7 +103,8 @@ def evaluate(c: pd.DataFrame) -> pd.DataFrame:
 if __name__ == "__main__":
     pd.set_option("display.width", 250)
     data = load_daily("BTC-USD")
+    scored = data["close"].iloc[:-HORIZON].loc["2018":]  # days whose outcome is already known
+    base = (data["close"].shift(-HORIZON).loc[scored.index] > scored).mean() * 100
     print(f"data {data.index[0].date()} to {data.index[-1].date()}; "
-          f"price was higher {HORIZON} days later on "
-          f"{(np.log(data['close']).shift(-HORIZON) > np.log(data['close'])).loc['2018':].mean() * 100:.1f}% of days since 2018")
+          f"price was higher {HORIZON} days later on {base:.1f}% of days since 2018")
     print(evaluate(data).to_string(index=False))

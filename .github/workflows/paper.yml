@@ -61,16 +61,23 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          n=$(gh issue list --state open --search "Paper trading daily log in:title" --json number -q '.[0].number')
           post() {
-            n=$(gh issue list --state open --search "Paper trading daily log in:title" --json number -q '.[0].number')
             if [ -z "$n" ]; then
-              gh issue create --title "Paper trading daily log" --body-file "$1"
+              n=$(gh issue create --title "Paper trading daily log" --body-file "$1" | grep -o '[0-9]*$')
             else
               gh issue comment "$n" --body-file "$1"
             fi
           }
-          for f in paper/alert.md paper/trend/alert.md; do
-            if [ -f "$f" ]; then post "$f"; fi
+          # An alert is deleted from the state branch only after it has been posted, so a failed
+          # post leaves it in place for the next run to retry.
+          for f in alert.md trend/alert.md; do
+            if [ -f "paper/$f" ]; then
+              post "paper/$f"
+              git -C paper rm -q "$f"
+              git -C paper commit -q -m "Alert posted: $f"
+              git -C paper push -q origin paper-state
+            fi
           done
           if [ -f paper/daily.md ]; then
             { echo; echo "---"; head -n 9 paper/trend/report.md; } >> paper/daily.md

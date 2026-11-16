@@ -64,9 +64,10 @@ def tick(directory: Path, cfg: Config, now: int | None = None, check_news: bool 
         if now >= meta.get("news_block_until", 0):
             verdict = news.assess(cfg.news_model)
             verdict["ts"] = now
-            meta["news"] = (meta["news"] + [verdict])[-200:]
-            with open(directory / "news_log.jsonl", "a") as log:  # full history, for later research
+            with open(directory / "news_log.jsonl", "a") as log:  # full history with headlines, for research
                 log.write(json.dumps(verdict) + "\n")
+            verdict.pop("titles", None)
+            meta["news"] = (meta["news"] + [verdict])[-200:]
             if verdict["block"]:
                 meta["news_block_until"] = now + cfg.news_block_hours * 3600
         allow_entries = now >= meta.get("news_block_until", 0)
@@ -84,12 +85,12 @@ def tick(directory: Path, cfg: Config, now: int | None = None, check_news: bool 
         daily.write_text(render_daily(eng, cfg, meta))
     elif daily.exists():
         daily.unlink()
-    alert = directory / "alert.md"  # present only on the tick where the shutdown trips
+    # Written when the shutdown trips. The workflow deletes it only after posting it, so a failed
+    # post is retried on the next run instead of being lost.
     if state.shutdown and not was_shutdown:
-        alert.write_text(f"### ALERT: intraday track stopped\n\n{state.shutdown}. Equity ${eng.equity():,.2f}. "
-                         "It stays stopped until reset by hand (`python -m tradebot.paper --reset-shutdown`).\n")
-    elif alert.exists():
-        alert.unlink()
+        (directory / "alert.md").write_text(
+            f"### ALERT: intraday track stopped\n\n{state.shutdown}. Equity ${eng.equity():,.2f}. "
+            "It stays stopped until reset by hand (`python -m tradebot.paper --reset-shutdown`).\n")
     return {"equity": round(eng.equity(), 2), "bars": sum(len(d) for d in fresh.values()), "allow_entries": allow_entries}
 
 

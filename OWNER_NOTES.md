@@ -30,3 +30,6 @@ anything that can be looked up (results, code, state) belongs elsewhere.
 - 2026-11-15: buy-and-hold VT is the better default; the trend track needs 6-12 months of paper
   results before a funding decision.
 - 2026-11-15: limit-order execution rejected by the gate; a lower-risk setting carried forward.
+- 2026-11-16: a model trained on historical price patterns showed no skill on unseen years and
+  did worse than the trend rules. News could not be included (no free archive); headlines are
+  now being logged hourly for a later test.

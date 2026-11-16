@@ -131,9 +131,12 @@ year, so every prediction is for a day it has not seen (2018 to 2026).
 | Trend rules, only when logistic regression agrees | 14.4% | -30.7% | |
 | Trend rules, only when gradient boosting agrees | 4.2% | -41.6% | |
 
-Always guessing "up" is right 51.8% of the time, so neither model has skill on unseen data. The
-simple trend rules stay. News cannot be included in this training because there is no free
-archive of past headlines; every hourly news reading is now saved to `news_log.jsonl` on the
+Always guessing "up" is right 51.9% of the time, so neither model has skill at calling direction
+on unseen data. Two cautions on reading the table: much of the return gap is fees, because the
+models change their mind often and pay 14-21% of the account a year against about 4% for the
+trend rules; and the trend rules do not predict five-day direction either (they make money by
+staying in long rises and out of long falls). The simple trend rules stay. News cannot be included in this training because there is no free
+archive of past headlines; every hourly news reading, with its headlines, is now saved to `news_log.jsonl` on the
 `paper-state` branch so that it can be tested once a few months have accumulated.
 Needs `pip install -r requirements-research.txt`.
 

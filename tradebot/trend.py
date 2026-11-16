@@ -262,13 +262,14 @@ def paper_tick(directory: Path, cfg: TrendConfig, now: int | None = None) -> dic
     run(close, cfg, s)
     path.write_text(json.dumps(s, indent=1))
     (directory / "report.md").write_text(render(s, cfg))
-    alert = directory / "alert.md"  # present only on the tick where the breaker trips
+    # Written when the breaker trips. The workflow deletes it only after posting it, so a failed
+    # post is retried on the next run instead of being lost.
     if s["breaker_trips"] > trips:
-        alert.write_text(f"### ALERT: trend track drawdown breaker tripped\n\nEquity ${s['days'][-1]['equity']:,.2f} "
-                         f"is {cfg.drawdown_limit * 100:.0f}% or more below its peak. The track sold everything and "
-                         f"is paused until {s['paused_until']}.\n")
-    elif alert.exists():
-        alert.unlink()
+        until = f"is paused until {s['paused_until']}" if s["paused_until"] else f"paused for {cfg.pause_days} days"
+        (directory / "alert.md").write_text(
+            f"### ALERT: trend track drawdown breaker tripped\n\nEquity fell {cfg.drawdown_limit * 100:.0f}% or more "
+            f"below its peak (now ${s['days'][-1]['equity']:,.2f}). The track sold everything and {until}. "
+            f"Breaker trips so far: {s['breaker_trips']}.\n")
     return {"equity": s["days"][-1]["equity"], "new_day": s["last_date"] != before}
 
 
