@@ -54,9 +54,18 @@
    "scorer": "keywords",
    "headlines": 18,
    "ts": 1794837960
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'plunge': Bitcoin Price Trades Near $64,000 After Weekend Plunge to $62,000 - Cryptonews.net",
+   "block": true,
+   "scorer": "keywords",
+   "headlines": 69,
+   "ts": 1794860509
   }
  ],
  "finished": false,
- "updated": 1794844639,
- "news_block_until": 1794859560
+ "updated": 1794860509,
+ "news_block_until": 1794882109
 }
