@@ -72,9 +72,38 @@
    "scorer": "keywords",
    "headlines": 64,
    "ts": 1794891749
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'crash': Will Bitcoin, Ethereum and XRP Prices Crash or Rally After Nvidia Earnings Today? - Cryptonews.net",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 0.02,
+      "range_vs_typical": 0.6,
+      "worst_1h_pct": -0.7,
+      "hours_checked": 8.75
+     },
+     "ETH-USD": {
+      "ret_1h_pct": 0.11,
+      "range_vs_typical": 0.6,
+      "worst_1h_pct": -1.31,
+      "hours_checked": 8.75
+     }
+    }
+   },
+   "headlines": 81,
+   "ts": 1794923835,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1794891749,
+ "updated": 1794923835,
  "news_block_until": 1794913349
 }
