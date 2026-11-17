@@ -101,9 +101,38 @@
    "headlines": 81,
    "ts": 1794923835,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'hackers': Hackers Plant \u2018Crypto-Stealing Code\u2019 On Websites Worldwide - Yahoo Finance",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.1,
+      "range_vs_typical": 0.6,
+      "worst_1h_pct": -0.1,
+      "hours_checked": 2.0
+     },
+     "ETH-USD": {
+      "ret_1h_pct": 0.17,
+      "range_vs_typical": 0.8,
+      "worst_1h_pct": 0.08,
+      "hours_checked": 2.0
+     }
+    }
+   },
+   "headlines": 81,
+   "ts": 1794925053,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1794923835,
+ "updated": 1794925053,
  "news_block_until": 1794913349
 }
