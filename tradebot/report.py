@@ -15,9 +15,15 @@ def _status(eng: Engine, meta: dict) -> str:
         return "30-day paper run complete."
     if s.day_halt:
         return f"Done for today ({'hit +target' if s.day_halt == 'target' else 'hit loss cap'})."
+    until = meta.get("news_block_until", 0)
+    if until > meta.get("updated", 0):
+        local = pd.Timestamp(until, unit="s", tz="UTC").tz_convert("America/New_York")
+        news_note = f" New entries blocked by news until {local:%m-%d %H:%M} ET."
+    else:
+        news_note = ""
     if s.qty:
-        return f"Holding {s.qty:.6f} {s.product} from {s.entry_price:,.2f}, stop {s.stop:,.2f}."
-    return "Flat, waiting for a setup."
+        return f"Holding {s.qty:.6f} {s.product} from {s.entry_price:,.2f}, stop {s.stop:,.2f}.{news_note}"
+    return "Flat, waiting for a setup." + news_note
 
 
 def _headline(eng: Engine, cfg: Config) -> list[str]:
@@ -72,7 +78,7 @@ def render_report(eng: Engine, cfg: Config, meta: dict) -> str:
         out += [
             f"- {pd.Timestamp(n['ts'], unit='s', tz='UTC').tz_convert(cfg.timezone):%m-%d %H:%M}: "
             f"{n['risk']} / {n['direction']}"
-            f"{' (entries blocked)' if n['block'] else ' (not confirmed by price; no block)' if n.get('warning') else ''}"
+            f"{' (started a news block)' if n['block'] else ' (warning not confirmed by price)' if n.get('warning') else ''}"
             f": {n['reason']} [{n['scorer']}]"
             for n in reversed(recent)
         ]

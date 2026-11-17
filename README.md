@@ -26,9 +26,10 @@ before a day counts as +1%.
 3. **Exit:** stop-loss 10 ATRs below entry, the daily target or loss cap, or the trend breaking.
 4. **News veto:** free headline feeds (CoinDesk, Cointelegraph, Federal Reserve, CNBC, and
    Google News, which carries Reuters and Bloomberg titles) are read every run. A keyword warning
-   blocks new entries for 6 hours only if the market is reacting at that moment (BTC or ETH down
-   1.5% in the last hour, or the last hour moving three times its usual range), which happens on
-   about 7% of 15-minute bars. Keywords alone cannot tell a new shock from a story about an old
+   blocks new entries for 6 hours only if the market reacted since the previous run: BTC or ETH
+   down 1.5% in some hour, or a falling hour with three times its usual range. Every hour since
+   the previous run is checked, because runs can be hours apart; at a 4-hour cadence about 17% of
+   runs would be confirmed. If the price check cannot be done, a warning blocks as before. Keywords alone cannot tell a new shock from a story about an old
    one. With an `ANTHROPIC_API_KEY` secret, Claude reads the headlines instead and its verdict is
    used directly. News never opens a trade.
 

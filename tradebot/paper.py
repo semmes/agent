@@ -44,6 +44,14 @@ def update_candles(directory: Path, product: str, cfg: Config, now: int) -> pd.D
     return df
 
 
+def apply_news_block(meta: dict, verdict: dict, now: int, hours: float) -> bool:
+    """Start a block only when none is active, so one story blocks for `hours`, not for as long
+    as it stays in the headline window. Returns whether new entries are allowed."""
+    if verdict["block"] and now >= meta.get("news_block_until", 0):
+        meta["news_block_until"] = now + int(hours * 3600)
+    return now >= meta.get("news_block_until", 0)
+
+
 def tick(directory: Path, cfg: Config, now: int | None = None, check_news: bool = True) -> dict:
     now = now or int(time.time())
     directory.mkdir(parents=True, exist_ok=True)
@@ -61,8 +69,10 @@ def tick(directory: Path, cfg: Config, now: int | None = None, check_news: bool 
 
     allow_entries = True
     if check_news and cfg.news_enabled:
-        # Read every run, even during a block, so the research log has no gaps.
-        reaction = news.market_reaction(candles, cfg.reaction_drop, cfg.reaction_range_ratio)
+        # Read every run, even during a block, so the research log has no gaps. The price check
+        # covers every hour since the last run, because runs can be hours apart.
+        since = pd.Timestamp(state.last_ts) if state.last_ts else None
+        reaction = news.market_reaction(candles, cfg.reaction_drop, cfg.reaction_range_ratio, since)
         verdict = news.assess(cfg.news_model, reaction=reaction)
         verdict["ts"] = now
         with open(directory / "news_log.jsonl", "a") as log:  # full history with headlines, for research
@@ -70,9 +80,7 @@ def tick(directory: Path, cfg: Config, now: int | None = None, check_news: bool 
         verdict.pop("titles", None)
         verdict.pop("by_source", None)
         meta["news"] = (meta["news"] + [verdict])[-200:]
-        if verdict["block"]:
-            meta["news_block_until"] = max(meta.get("news_block_until", 0), now + cfg.news_block_hours * 3600)
-        allow_entries = now >= meta.get("news_block_until", 0)
+        allow_entries = apply_news_block(meta, verdict, now, cfg.news_block_hours)
 
     days_before, was_shutdown = len(state.days), bool(state.shutdown)
     run(fresh, cfg, eng, allow_entries=allow_entries)
