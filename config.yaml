@@ -17,6 +17,8 @@ entry_order: limit           # resting limit orders pay the lower maker fee
 
 news_enabled: true
 news_block_hours: 6
+reaction_drop: 0.015         # keyword warnings block only if BTC/ETH fell 1.5% in the last hour
+reaction_range_ratio: 3.0    # ...or the last hour moved 3x its usual range
 news_model: claude-opus-5-5  # used only when ANTHROPIC_API_KEY is set
 
 # Best rule set from the parameter search (see README: the edge is not proven).

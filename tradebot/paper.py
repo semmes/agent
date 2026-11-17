@@ -61,16 +61,17 @@ def tick(directory: Path, cfg: Config, now: int | None = None, check_news: bool 
 
     allow_entries = True
     if check_news and cfg.news_enabled:
-        if now >= meta.get("news_block_until", 0):
-            verdict = news.assess(cfg.news_model)
-            verdict["ts"] = now
-            with open(directory / "news_log.jsonl", "a") as log:  # full history with headlines, for research
-                log.write(json.dumps(verdict) + "\n")
-            verdict.pop("titles", None)
-            verdict.pop("by_source", None)
-            meta["news"] = (meta["news"] + [verdict])[-200:]
-            if verdict["block"]:
-                meta["news_block_until"] = now + cfg.news_block_hours * 3600
+        # Read every run, even during a block, so the research log has no gaps.
+        reaction = news.market_reaction(candles, cfg.reaction_drop, cfg.reaction_range_ratio)
+        verdict = news.assess(cfg.news_model, reaction=reaction)
+        verdict["ts"] = now
+        with open(directory / "news_log.jsonl", "a") as log:  # full history with headlines, for research
+            log.write(json.dumps(verdict) + "\n")
+        verdict.pop("titles", None)
+        verdict.pop("by_source", None)
+        meta["news"] = (meta["news"] + [verdict])[-200:]
+        if verdict["block"]:
+            meta["news_block_until"] = max(meta.get("news_block_until", 0), now + cfg.news_block_hours * 3600)
         allow_entries = now >= meta.get("news_block_until", 0)
 
     days_before, was_shutdown = len(state.days), bool(state.shutdown)

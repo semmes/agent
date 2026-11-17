@@ -142,8 +142,27 @@ def score_llm(headlines: list[dict], model: str) -> Verdict:
     return response.parsed_output
 
 
-def assess(model: str, max_age_hours: float = 6) -> dict:
-    """Return the verdict plus whether it blocks new entries."""
+def market_reaction(candles: dict, drop: float, range_ratio: float) -> dict:
+    """Is the market actually reacting right now? Uses the last hour of closed 15-minute bars
+    against the past week. Free: it needs only the price data the agent already downloads."""
+    detail, confirmed = {}, False
+    for product, d in candles.items():
+        if len(d) < 7 * 96 + 8:
+            continue
+        ret_1h = d["close"].iloc[-1] / d["close"].iloc[-5] - 1
+        hour_range = (d["high"].rolling(4).max() - d["low"].rolling(4).min()) / d["close"]
+        typical = hour_range.iloc[-(7 * 96) - 4:-4].median()
+        ratio = float(hour_range.iloc[-1] / typical) if typical > 0 else 0.0
+        detail[product] = {"ret_1h_pct": round(ret_1h * 100, 2), "range_vs_typical": round(ratio, 1)}
+        confirmed |= bool(ret_1h <= -drop or ratio >= range_ratio)
+    return {"confirmed": confirmed, "detail": detail}
+
+
+def assess(model: str, max_age_hours: float = 6, reaction: dict | None = None) -> dict:
+    """Return the verdict plus whether it blocks new entries.
+
+    A keyword warning blocks only when `reaction` says the market is moving: keywords cannot
+    tell a new shock from a story about yesterday's fall. A Claude verdict is used as given."""
     headlines = fetch_headlines(max_age_hours)
     scorer = "none"
     if not headlines:
@@ -155,7 +174,10 @@ def assess(model: str, max_age_hours: float = 6) -> dict:
             verdict, scorer = score_keywords(headlines), f"keywords (LLM failed: {type(exc).__name__})"
     else:
         verdict, scorer = score_keywords(headlines), "keywords"
-    block = verdict.risk == "high" or (verdict.risk == "elevated" and verdict.direction == "bearish")
-    return {**verdict.model_dump(), "block": block, "scorer": scorer, "headlines": len(headlines),
+    warning = verdict.risk == "high" or (verdict.risk == "elevated" and verdict.direction == "bearish")
+    needs_market = not scorer.startswith("llm")
+    block = warning and (not needs_market or bool(reaction and reaction["confirmed"]))
+    return {**verdict.model_dump(), "warning": warning, "block": block, "scorer": scorer,
+            "market": reaction, "headlines": len(headlines),
             "by_source": dict(Counter(h["source"] for h in headlines)),
             "titles": [f"[{h['source']}] {h['title']}" for h in headlines]}

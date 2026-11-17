@@ -71,7 +71,9 @@ def render_report(eng: Engine, cfg: Config, meta: dict) -> str:
         out += ["## Latest news checks", ""]
         out += [
             f"- {pd.Timestamp(n['ts'], unit='s', tz='UTC').tz_convert(cfg.timezone):%m-%d %H:%M}: "
-            f"{n['risk']} / {n['direction']}{' (entries blocked)' if n['block'] else ''}: {n['reason']} [{n['scorer']}]"
+            f"{n['risk']} / {n['direction']}"
+            f"{' (entries blocked)' if n['block'] else ' (not confirmed by price; no block)' if n.get('warning') else ''}"
+            f": {n['reason']} [{n['scorer']}]"
             for n in reversed(recent)
         ]
     return "\n".join(out) + "\n"

@@ -25,8 +25,12 @@ before a day counts as +1%.
 2. **Entry:** a close above the prior 7-day high, bought with a limit order (lower maker fee).
 3. **Exit:** stop-loss 10 ATRs below entry, the daily target or loss cap, or the trend breaking.
 4. **News veto:** free headline feeds (CoinDesk, Cointelegraph, Federal Reserve, CNBC, and
-   Google News, which carries Reuters and Bloomberg titles) are scored for risk every run. A high-risk reading blocks new entries for 6 hours. News never opens a trade.
-   With an `ANTHROPIC_API_KEY` secret the scoring is done by Claude; without one, by keywords.
+   Google News, which carries Reuters and Bloomberg titles) are read every run. A keyword warning
+   blocks new entries for 6 hours only if the market is reacting at that moment (BTC or ETH down
+   1.5% in the last hour, or the last hour moving three times its usual range), which happens on
+   about 7% of 15-minute bars. Keywords alone cannot tell a new shock from a story about an old
+   one. With an `ANTHROPIC_API_KEY` secret, Claude reads the headlines instead and its verdict is
+   used directly. News never opens a trade.
 
 ## What the backtest shows
 

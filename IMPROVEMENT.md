@@ -49,6 +49,14 @@ settings; it does not and cannot retrain the AI model. Run one cycle a week, or 
 7. **Report** to the owner: what was audited, what was tried, what changed, what was rejected and
    why, and anything that needs their decision. If nothing was worth changing, say so.
 
+## Adding a data source (free or paid)
+
+1. Run it in shadow mode first: fetch and log it alongside the existing sources without letting
+   it affect trading, for at least four weeks of readings.
+2. Compare the logged readings with what prices did next. Adopt it only if it would have changed
+   decisions for the better, by enough to cover its cost.
+3. A paid source needs the owner's approval before any money is spent, even for a trial.
+
 ## Keeping the evidence honest
 
 - Each candidate tested makes a lucky result more likely. The log's running count of candidates

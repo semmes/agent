@@ -106,3 +106,31 @@ def test_one_bad_feed_does_not_stop_the_others(monkeypatch):
 
     monkeypatch.setattr(news.requests, "get", get)
     assert len(news.fetch_headlines(feeds={"a": "bad", "b": "ok"}, general_feeds={})) == 1
+
+
+def _candles(last_hour_move=0.0, last_hour_range=0.004, n=7 * 96 + 20):
+    idx = pd.date_range("2026-01-01", periods=n, freq="15min", tz="UTC")
+    close = np.full(n, 100.0)
+    close[-4:] = 100.0 * (1 + last_hour_move * np.arange(1, 5) / 4)
+    spread = np.full(n, 0.002)
+    spread[-4:] = last_hour_range / 2
+    return pd.DataFrame({"open": close, "high": close * (1 + spread), "low": close * (1 - spread),
+                         "close": close, "volume": 1.0}, index=idx)
+
+
+def test_market_reaction_detects_drops_and_volatility_spikes():
+    calm = news.market_reaction({"BTC-USD": _candles()}, 0.015, 3.0)
+    drop = news.market_reaction({"BTC-USD": _candles(last_hour_move=-0.02)}, 0.015, 3.0)
+    spike = news.market_reaction({"BTC-USD": _candles(last_hour_range=0.03)}, 0.015, 3.0)
+    assert not calm["confirmed"] and drop["confirmed"] and spike["confirmed"]
+    assert drop["detail"]["BTC-USD"]["ret_1h_pct"] < -1.5
+
+
+def test_keyword_warning_blocks_only_when_market_confirms(monkeypatch):
+    shock = [{"source": "CoinDesk", "title": "Major exchange halts withdrawals after hack", "ts": 0, "general": False}]
+    monkeypatch.setattr(news, "fetch_headlines", lambda hours: shock)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    quiet = news.assess("m", reaction={"confirmed": False, "detail": {}})
+    moving = news.assess("m", reaction={"confirmed": True, "detail": {}})
+    assert quiet["warning"] and not quiet["block"]
+    assert moving["warning"] and moving["block"]
