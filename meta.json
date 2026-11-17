@@ -63,9 +63,18 @@
    "scorer": "keywords",
    "headlines": 69,
    "ts": 1794860509
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'stolen': Optimjack Crypto Malware: 178 Sites, $6,600 Stolen - shattered.io",
+   "block": true,
+   "scorer": "keywords",
+   "headlines": 64,
+   "ts": 1794891749
   }
  ],
  "finished": false,
- "updated": 1794870040,
- "news_block_until": 1794882109
+ "updated": 1794891749,
+ "news_block_until": 1794913349
 }

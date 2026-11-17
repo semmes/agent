@@ -3,7 +3,7 @@
  "qty": 0.0,
  "peak": 5000,
  "paused_until": "",
- "last_date": "2026-11-15",
+ "last_date": "2026-11-16",
  "volume": [],
  "days": [
   {
@@ -13,6 +13,11 @@
   },
   {
    "date": "2026-11-15",
+   "equity": 5000.0,
+   "weight": 0.0
+  },
+  {
+   "date": "2026-11-16",
    "equity": 5000.0,
    "weight": 0.0
   }
