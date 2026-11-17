@@ -7,7 +7,7 @@ from .config import Config
 from .engine import Engine
 
 
-def _status(eng: Engine, meta: dict) -> str:
+def _status(eng: Engine, meta: dict, tz: str = "America/New_York") -> str:
     s = eng.s
     if s.shutdown:
         return f"STOPPED: {s.shutdown}. Review, then run with --reset-shutdown."
@@ -17,8 +17,8 @@ def _status(eng: Engine, meta: dict) -> str:
         return f"Done for today ({'hit +target' if s.day_halt == 'target' else 'hit loss cap'})."
     until = meta.get("news_block_until", 0)
     if until > meta.get("updated", 0):
-        local = pd.Timestamp(until, unit="s", tz="UTC").tz_convert("America/New_York")
-        news_note = f" New entries blocked by news until {local:%m-%d %H:%M} ET."
+        local = pd.Timestamp(until, unit="s", tz="UTC").tz_convert(tz)
+        news_note = f" New entries blocked by news until {local:%m-%d %H:%M %Z}."
     else:
         news_note = ""
     if s.qty:
@@ -46,17 +46,27 @@ def _headline(eng: Engine, cfg: Config) -> list[str]:
     return lines
 
 
+def _news_label(n: dict) -> str:
+    if "action" in n:
+        if n["action"]:
+            return f" ({n['action']} a news block)"
+        if n["block"]:
+            return " (block already active)"
+        return " (warning not confirmed by price)" if n.get("warning") else ""
+    return " (entries blocked)" if n["block"] else ""  # readings stored before this change
+
+
 def render_daily(eng: Engine, cfg: Config, meta: dict) -> str:
     d = eng.s.days[-1]
     out = [f"### {d['day']}: {d['pnl_pct']:+.2f}% (${d['start']:,.2f} -> ${d['end']:,.2f})", ""]
-    out += _headline(eng, cfg) + ["", f"**Status:** {_status(eng, meta)}"]
+    out += _headline(eng, cfg) + ["", f"**Status:** {_status(eng, meta, cfg.timezone)}"]
     return "\n".join(out) + "\n"
 
 
 def render_report(eng: Engine, cfg: Config, meta: dict) -> str:
     updated = pd.Timestamp(meta.get("updated", 0), unit="s", tz="UTC").tz_convert(cfg.timezone)
     out = ["# Paper trading report", "", f"Updated {updated:%Y-%m-%d %H:%M %Z}. Simulated money only.", ""]
-    out += [f"**Status:** {_status(eng, meta)}", ""] + _headline(eng, cfg) + [""]
+    out += [f"**Status:** {_status(eng, meta, cfg.timezone)}", ""] + _headline(eng, cfg) + [""]
     if eng.s.days:
         out += ["## Days", "", "| Day | Start | End | P&L % | Trades | Ended by |", "|---|---|---|---|---|---|"]
         out += [
@@ -78,7 +88,7 @@ def render_report(eng: Engine, cfg: Config, meta: dict) -> str:
         out += [
             f"- {pd.Timestamp(n['ts'], unit='s', tz='UTC').tz_convert(cfg.timezone):%m-%d %H:%M}: "
             f"{n['risk']} / {n['direction']}"
-            f"{' (started a news block)' if n['block'] else ' (warning not confirmed by price)' if n.get('warning') else ''}"
+            f"{_news_label(n)}"
             f": {n['reason']} [{n['scorer']}]"
             for n in reversed(recent)
         ]

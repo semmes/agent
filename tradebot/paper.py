@@ -45,10 +45,19 @@ def update_candles(directory: Path, product: str, cfg: Config, now: int) -> pd.D
 
 
 def apply_news_block(meta: dict, verdict: dict, now: int, hours: float) -> bool:
-    """Start a block only when none is active, so one story blocks for `hours`, not for as long
-    as it stays in the headline window. Returns whether new entries are allowed."""
-    if verdict["block"] and now >= meta.get("news_block_until", 0):
-        meta["news_block_until"] = now + int(hours * 3600)
+    """Start a block when none is active. During a block, extend it only on fresh evidence: a
+    price reaction since the previous run. Re-reading the same story does not extend it, but a
+    new shock arriving mid-block still gets its full `hours`. Records what it did in
+    verdict["action"]. Returns whether new entries are allowed."""
+    action = None
+    if verdict["block"]:
+        if now >= meta.get("news_block_until", 0):
+            action = "started"
+        elif (verdict.get("market") or {}).get("confirmed"):
+            action = "extended"
+        if action:
+            meta["news_block_until"] = max(meta.get("news_block_until", 0), now + int(hours * 3600))
+    verdict["action"] = action
     return now >= meta.get("news_block_until", 0)
 
 
@@ -70,17 +79,21 @@ def tick(directory: Path, cfg: Config, now: int | None = None, check_news: bool 
     allow_entries = True
     if check_news and cfg.news_enabled:
         # Read every run, even during a block, so the research log has no gaps. The price check
-        # covers every hour since the last run, because runs can be hours apart.
-        since = pd.Timestamp(state.last_ts) if state.last_ts else None
+        # covers every hour since the previous run (runs can be hours apart), but at least the
+        # last 2 hours (headlines lag price) and at most the last 12 (after the 30-day run ends
+        # the replay stops, so "since the previous run" would otherwise keep growing).
+        latest = max(d.index[-1] for d in candles.values())
+        since = pd.Timestamp(state.last_ts) if state.last_ts else latest - pd.Timedelta(hours=2)
+        since = min(max(since, latest - pd.Timedelta(hours=12)), latest - pd.Timedelta(hours=2))
         reaction = news.market_reaction(candles, cfg.reaction_drop, cfg.reaction_range_ratio, since)
         verdict = news.assess(cfg.news_model, reaction=reaction)
         verdict["ts"] = now
+        allow_entries = apply_news_block(meta, verdict, now, cfg.news_block_hours)
         with open(directory / "news_log.jsonl", "a") as log:  # full history with headlines, for research
             log.write(json.dumps(verdict) + "\n")
         verdict.pop("titles", None)
         verdict.pop("by_source", None)
         meta["news"] = (meta["news"] + [verdict])[-200:]
-        allow_entries = apply_news_block(meta, verdict, now, cfg.news_block_hours)
 
     days_before, was_shutdown = len(state.days), bool(state.shutdown)
     run(fresh, cfg, eng, allow_entries=allow_entries)

@@ -28,8 +28,9 @@ before a day counts as +1%.
    Google News, which carries Reuters and Bloomberg titles) are read every run. A keyword warning
    blocks new entries for 6 hours only if the market reacted since the previous run: BTC or ETH
    down 1.5% in some hour, or a falling hour with three times its usual range. Every hour since
-   the previous run is checked, because runs can be hours apart; at a 4-hour cadence about 17% of
-   runs would be confirmed. If the price check cannot be done, a warning blocks as before. Keywords alone cannot tell a new shock from a story about an old
+   the previous run is checked (at least 2, at most 12), because runs can be hours apart and
+   headlines lag prices. A block is extended only by a new price reaction, so re-reading the
+   same story does not stretch it. If the price check cannot be done, a warning blocks. Keywords alone cannot tell a new shock from a story about an old
    one. With an `ANTHROPIC_API_KEY` secret, Claude reads the headlines instead and its verdict is
    used directly. News never opens a trade.
 

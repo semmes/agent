@@ -154,14 +154,29 @@ def test_unknown_market_reaction_falls_back_to_blocking(monkeypatch):
     assert news.assess("m", reaction={"confirmed": False, "computed": False, "detail": {}})["block"]
 
 
-def test_news_block_lasts_its_length_and_is_not_extended():
+def test_news_block_extends_only_on_fresh_price_evidence():
     from tradebot.paper import apply_news_block
+    hit = lambda confirmed: {"block": True, "market": {"confirmed": confirmed}}
     meta = {}
-    assert not apply_news_block(meta, {"block": True}, 1000, 6)
+    v = hit(True)
+    assert not apply_news_block(meta, v, 1000, 6) and v["action"] == "started"
     assert meta["news_block_until"] == 1000 + 6 * 3600
-    assert not apply_news_block(meta, {"block": True}, 1000 + 3 * 3600, 6)  # still the first block
+    v = {"block": True, "market": None}  # Claude re-reading the same story, no new price move
+    assert not apply_news_block(meta, v, 1000 + 3600, 6) and v["action"] is None
     assert meta["news_block_until"] == 1000 + 6 * 3600
-    assert apply_news_block(meta, {"block": False}, 1000 + 6 * 3600, 6)
+    v = hit(True)  # a new shock mid-block gets its full six hours
+    assert not apply_news_block(meta, v, 1000 + 3 * 3600, 6) and v["action"] == "extended"
+    assert meta["news_block_until"] == 1000 + 9 * 3600
+    v = {"block": False}
+    assert apply_news_block(meta, v, 1000 + 9 * 3600, 6) and v["action"] is None
+
+
+def test_all_gap_windows_count_as_unknown():
+    c = _candles(n=7 * 96 + 60)
+    c = c.drop(c.index[-6:-2])  # four bars missing just before the two newest
+    c.loc[c.index[-2:], ["close", "high", "low"]] = [[95.0, 95.2, 94.8]] * 2
+    seen = news.market_reaction({"BTC-USD": c}, 0.015, 3.0, since=c.index[-3])
+    assert not seen["computed"]
 
 
 def test_keyword_warning_blocks_only_when_market_confirms(monkeypatch):

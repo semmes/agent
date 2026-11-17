@@ -165,9 +165,11 @@ def market_reaction(candles: dict, drop: float, range_ratio: float, since=None) 
         if not mask.any():
             mask = d.index >= d.index[-1]
         r, q = ret[mask], ratio[mask]
+        if r.isna().all():
+            continue  # every window falls in a gap in the data: no evidence either way
         hits = (r <= -drop) | ((q >= range_ratio) & (r < 0))
         detail[product] = {"ret_1h_pct": _num(ret.iloc[-1] * 100, 2), "range_vs_typical": _num(ratio.iloc[-1], 1),
-                           "worst_1h_pct": _num(r.min() * 100, 2), "hours_checked": round(int(mask.sum()) / 4, 2)}
+                           "worst_1h_pct": _num(r.min() * 100, 2), "hours_checked": round(int(r.notna().sum()) / 4, 2)}
         confirmed |= bool(hits.any())
     return {"confirmed": confirmed, "computed": bool(detail), "detail": detail}
 
