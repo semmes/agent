@@ -106,3 +106,84 @@ def test_one_bad_feed_does_not_stop_the_others(monkeypatch):
 
     monkeypatch.setattr(news.requests, "get", get)
     assert len(news.fetch_headlines(feeds={"a": "bad", "b": "ok"}, general_feeds={})) == 1
+
+
+def _candles(last_hour_move=0.0, last_hour_range=0.004, n=7 * 96 + 20):
+    idx = pd.date_range("2026-01-01", periods=n, freq="15min", tz="UTC")
+    close = np.full(n, 100.0)
+    close[-4:] = 100.0 * (1 + last_hour_move * np.arange(1, 5) / 4)
+    spread = np.full(n, 0.002)
+    spread[-4:] = last_hour_range / 2
+    return pd.DataFrame({"open": close, "high": close * (1 + spread), "low": close * (1 - spread),
+                         "close": close, "volume": 1.0}, index=idx)
+
+
+def test_market_reaction_detects_drops_and_falling_spikes_only():
+    calm = news.market_reaction({"BTC-USD": _candles()}, 0.015, 3.0)
+    drop = news.market_reaction({"BTC-USD": _candles(last_hour_move=-0.02)}, 0.015, 3.0)
+    down_spike = news.market_reaction({"BTC-USD": _candles(last_hour_move=-0.005, last_hour_range=0.03)}, 0.015, 3.0)
+    up_spike = news.market_reaction({"BTC-USD": _candles(last_hour_move=0.02, last_hour_range=0.03)}, 0.015, 3.0)
+    assert not calm["confirmed"] and drop["confirmed"] and down_spike["confirmed"]
+    assert not up_spike["confirmed"]
+    assert drop["detail"]["BTC-USD"]["ret_1h_pct"] < -1.5
+
+
+def test_market_reaction_checks_every_hour_since_the_last_run():
+    c = _candles(n=7 * 96 + 60)
+    c.iloc[-30:-26, c.columns.get_loc("close")] = [99.0, 98.5, 98.0, 97.5]  # a fall 7 hours ago
+    c.iloc[-26:, c.columns.get_loc("close")] = 97.5  # then flat
+    c["high"], c["low"] = c[["close"]].max(axis=1) * 1.002, c[["close"]].min(axis=1) * 0.998
+    since = c.index[-40]
+    assert not news.market_reaction({"BTC-USD": c}, 0.015, 3.0)["confirmed"]  # last hour only
+    seen = news.market_reaction({"BTC-USD": c}, 0.015, 3.0, since=since)
+    assert seen["confirmed"] and seen["detail"]["BTC-USD"]["worst_1h_pct"] < -1.5
+
+
+def test_market_reaction_does_not_bridge_gaps():
+    c = _candles(n=7 * 96 + 60)
+    c.loc[c.index[-1], ["close", "high", "low"]] = [97.0, 97.2, 96.8]  # -3% vs 1h ago...
+    c = c.drop(c.index[-8:-1])  # ...but only because 7 bars are missing
+    assert not news.market_reaction({"BTC-USD": c}, 0.015, 3.0)["confirmed"]
+
+
+def test_unknown_market_reaction_falls_back_to_blocking(monkeypatch):
+    shock = [{"source": "CoinDesk", "title": "Major exchange halts withdrawals after hack", "ts": 0, "general": False}]
+    monkeypatch.setattr(news, "fetch_headlines", lambda hours: shock)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    assert news.assess("m")["block"]
+    assert news.assess("m", reaction={"confirmed": False, "computed": False, "detail": {}})["block"]
+
+
+def test_news_block_extends_only_on_fresh_price_evidence():
+    from tradebot.paper import apply_news_block
+    hit = lambda confirmed: {"block": True, "market": {"confirmed": confirmed}}
+    meta = {}
+    v = hit(True)
+    assert not apply_news_block(meta, v, 1000, 6) and v["action"] == "started"
+    assert meta["news_block_until"] == 1000 + 6 * 3600
+    v = {"block": True, "market": None}  # Claude re-reading the same story, no new price move
+    assert not apply_news_block(meta, v, 1000 + 3600, 6) and v["action"] is None
+    assert meta["news_block_until"] == 1000 + 6 * 3600
+    v = hit(True)  # a new shock mid-block gets its full six hours
+    assert not apply_news_block(meta, v, 1000 + 3 * 3600, 6) and v["action"] == "extended"
+    assert meta["news_block_until"] == 1000 + 9 * 3600
+    v = {"block": False}
+    assert apply_news_block(meta, v, 1000 + 9 * 3600, 6) and v["action"] is None
+
+
+def test_all_gap_windows_count_as_unknown():
+    c = _candles(n=7 * 96 + 60)
+    c = c.drop(c.index[-6:-2])  # four bars missing just before the two newest
+    c.loc[c.index[-2:], ["close", "high", "low"]] = [[95.0, 95.2, 94.8]] * 2
+    seen = news.market_reaction({"BTC-USD": c}, 0.015, 3.0, since=c.index[-3])
+    assert not seen["computed"]
+
+
+def test_keyword_warning_blocks_only_when_market_confirms(monkeypatch):
+    shock = [{"source": "CoinDesk", "title": "Major exchange halts withdrawals after hack", "ts": 0, "general": False}]
+    monkeypatch.setattr(news, "fetch_headlines", lambda hours: shock)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    quiet = news.assess("m", reaction={"confirmed": False, "detail": {}})
+    moving = news.assess("m", reaction={"confirmed": True, "detail": {}})
+    assert quiet["warning"] and not quiet["block"]
+    assert moving["warning"] and moving["block"]

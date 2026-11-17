@@ -29,6 +29,11 @@ anything that can be looked up (results, code, state) belongs elsewhere.
   always-on host until the agent is connected to Coinbase; the owner wants to see first whether
   the agent can run on Coinbase's platform or whether the question resolves itself there.
 
+- Data philosophy (2026-11-17): the agent must work well on free data and react to what the
+  market is doing in real time. Paid data (Coinbase's paid news and research, x402 research,
+  Bloomberg, Reuters and similar) is optional and should only be added if it measurably improves
+  results. The owner is undecided on Coinbase's paid news and research connection for now.
+
 ## Reported to the owner
 
 - 2026-11-15: intraday rules do not overcome fees (0 of 216 rule sets profitable in both test

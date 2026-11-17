@@ -142,8 +142,44 @@ def score_llm(headlines: list[dict], model: str) -> Verdict:
     return response.parsed_output
 
 
-def assess(model: str, max_age_hours: float = 6) -> dict:
-    """Return the verdict plus whether it blocks new entries."""
+def _num(x: float, digits: int) -> float | None:
+    return None if x != x else round(float(x), digits)  # NaN -> None keeps the JSON log valid
+
+
+def market_reaction(candles: dict, drop: float, range_ratio: float, since=None) -> dict:
+    """Did the market react since the last run? Checks every one-hour window ending after
+    `since` (at least the latest hour) on closed 15-minute bars, against the past week.
+    Confirmed by a fall of at least `drop`, or a falling hour whose range is at least
+    `range_ratio` times typical. Free: it uses only the price data the agent already has."""
+    detail, confirmed = {}, False
+    for product, raw in candles.items():
+        d = raw.asfreq("15min")  # missing bars become gaps, so a "1h" window never spans more
+        if len(d) < 7 * 96 + 8:
+            continue
+        close = d["close"]
+        ret = close / close.shift(4) - 1
+        hour_range = (d["high"].rolling(4).max() - d["low"].rolling(4).min()) / close
+        typical = hour_range.shift(4).rolling(7 * 96, min_periods=7 * 48).median()
+        ratio = hour_range / typical.where(typical > 0)
+        mask = d.index > since if since is not None else d.index >= d.index[-1]
+        if not mask.any():
+            mask = d.index >= d.index[-1]
+        r, q = ret[mask], ratio[mask]
+        if r.isna().all():
+            continue  # every window falls in a gap in the data: no evidence either way
+        hits = (r <= -drop) | ((q >= range_ratio) & (r < 0))
+        detail[product] = {"ret_1h_pct": _num(ret.iloc[-1] * 100, 2), "range_vs_typical": _num(ratio.iloc[-1], 1),
+                           "worst_1h_pct": _num(r.min() * 100, 2), "hours_checked": round(int(r.notna().sum()) / 4, 2)}
+        confirmed |= bool(hits.any())
+    return {"confirmed": confirmed, "computed": bool(detail), "detail": detail}
+
+
+def assess(model: str, max_age_hours: float = 6, reaction: dict | None = None) -> dict:
+    """Return the verdict plus whether it blocks new entries.
+
+    A keyword warning blocks only when `reaction` says the market moved: keywords cannot tell
+    a new shock from a story about yesterday's fall. If the reaction is missing or could not be
+    computed, a keyword warning blocks, as it did before. A Claude verdict is used as given."""
     headlines = fetch_headlines(max_age_hours)
     scorer = "none"
     if not headlines:
@@ -155,7 +191,14 @@ def assess(model: str, max_age_hours: float = 6) -> dict:
             verdict, scorer = score_keywords(headlines), f"keywords (LLM failed: {type(exc).__name__})"
     else:
         verdict, scorer = score_keywords(headlines), "keywords"
-    block = verdict.risk == "high" or (verdict.risk == "elevated" and verdict.direction == "bearish")
-    return {**verdict.model_dump(), "block": block, "scorer": scorer, "headlines": len(headlines),
+    warning = verdict.risk == "high" or (verdict.risk == "elevated" and verdict.direction == "bearish")
+    needs_market = not scorer.startswith("llm")
+    if reaction is None or not reaction.get("computed", True):
+        market_says = True  # cannot tell, so err toward not entering
+    else:
+        market_says = bool(reaction.get("confirmed", True))
+    block = warning and (not needs_market or market_says)
+    return {**verdict.model_dump(), "warning": warning, "block": block, "scorer": scorer,
+            "market": reaction, "headlines": len(headlines),
             "by_source": dict(Counter(h["source"] for h in headlines)),
             "titles": [f"[{h['source']}] {h['title']}" for h in headlines]}

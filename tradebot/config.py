@@ -48,6 +48,11 @@ class Config:
 
     news_enabled: bool = True
     news_block_hours: int = 6
+    # A keyword warning only blocks entries if the market is reacting: BTC or ETH down at least
+    # reaction_drop over the last hour, or the last hour's range at least reaction_range_ratio
+    # times its typical size over the past week.
+    reaction_drop: float = 0.015
+    reaction_range_ratio: float = 3.0
     news_model: str = "claude-opus-5-5"
 
     strategy: Strategy = field(default_factory=Strategy)
