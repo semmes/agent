@@ -188,9 +188,38 @@
    "headlines": 66,
    "ts": 1794973915,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'hacker': Binance Hacker Moves $142 Million in ETH, Launders Through THORChain Cross-Chain Swaps Into BTC - BigGo Finance",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.21,
+      "range_vs_typical": 0.9,
+      "worst_1h_pct": -0.64,
+      "hours_checked": 9.0
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.31,
+      "range_vs_typical": 1.0,
+      "worst_1h_pct": -0.68,
+      "hours_checked": 9.0
+     }
+    }
+   },
+   "headlines": 75,
+   "ts": 1795006629,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1794973915,
+ "updated": 1795006629,
  "news_block_until": 1794976636
 }
