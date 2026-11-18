@@ -217,9 +217,38 @@
    "headlines": 75,
    "ts": 1795006629,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'bans crypto': Lynden bans crypto kiosks amid rising reports of phone scams - My Bellingham Now",
+   "warning": true,
+   "block": true,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": true,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.49,
+      "range_vs_typical": 0.9,
+      "worst_1h_pct": -1.64,
+      "hours_checked": 8.5
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.04,
+      "range_vs_typical": 0.7,
+      "worst_1h_pct": -1.71,
+      "hours_checked": 8.5
+     }
+    }
+   },
+   "headlines": 72,
+   "ts": 1795036907,
+   "action": "started"
   }
  ],
  "finished": false,
- "updated": 1795006629,
- "news_block_until": 1794976636
+ "updated": 1795036907,
+ "news_block_until": 1795058507
 }

@@ -1,8 +1,8 @@
 # Paper trading report
 
-Updated 2026-11-18 07:57 EST. Simulated money only.
+Updated 2026-11-18 16:21 EST. Simulated money only.
 
-**Status:** Flat, waiting for a setup.
+**Status:** Flat, waiting for a setup. New entries blocked by news until 11-18 22:21 EST.
 
 - **Equity:** $5,000.00 (+0.00% since start, today +0.00%)
 - **Completed days:** 3: 0 up, 0 down, 3 flat; hit +target on 0, hit loss cap on 0; worst day +0.00%
@@ -18,8 +18,8 @@ Updated 2026-11-18 07:57 EST. Simulated money only.
 
 ## Latest news checks
 
+- 11-18 16:21: high / bearish (started a news block): Keyword 'bans crypto': Lynden bans crypto kiosks amid rising reports of phone scams - My Bellingham Now [keywords]
 - 11-18 07:57: high / bearish (warning not confirmed by price): Keyword 'hacker': Binance Hacker Moves $142 Million in ETH, Launders Through THORChain Cross-Chain Swaps Into BTC - BigGo Finance [keywords]
 - 11-17 22:51: low / neutral: No risk keywords in recent headlines [keywords]
 - 11-17 17:37: high / bearish (started a news block): Keyword 'hack': Fed’s Waller cites Binance hack in warning over tokenized finance [keywords]
 - 11-17 09:17: high / bearish (warning not confirmed by price): Keyword 'hackers': Hackers Plant ‘Crypto-Stealing Code’ On Websites Worldwide - Yahoo Finance [keywords]
-- 11-17 08:57: high / bearish (warning not confirmed by price): Keyword 'crash': Will Bitcoin, Ethereum and XRP Prices Crash or Rally After Nvidia Earnings Today? - Cryptonews.net [keywords]
