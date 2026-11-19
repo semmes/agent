@@ -304,9 +304,38 @@
    "headlines": 75,
    "ts": 1795087752,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'hackers': Binance wins $6.5 billion feezing order against hackers behind crypto's largest theft",
+   "warning": true,
+   "block": true,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": true,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.71,
+      "range_vs_typical": 1.3,
+      "worst_1h_pct": -1.68,
+      "hours_checked": 8.25
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.41,
+      "range_vs_typical": 1.2,
+      "worst_1h_pct": -1.79,
+      "hours_checked": 8.25
+     }
+    }
+   },
+   "headlines": 70,
+   "ts": 1795117024,
+   "action": "started"
   }
  ],
  "finished": false,
- "updated": 1795087752,
- "news_block_until": 1795058507
+ "updated": 1795117024,
+ "news_block_until": 1795138624
 }
