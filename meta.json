@@ -275,9 +275,38 @@
    "headlines": 67,
    "ts": 1795056407,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'emergency': BTCPay Server issues emergency update for 5 security flaws",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.04,
+      "range_vs_typical": 0.6,
+      "worst_1h_pct": -0.65,
+      "hours_checked": 8.5
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.1,
+      "range_vs_typical": 0.5,
+      "worst_1h_pct": -0.64,
+      "hours_checked": 8.5
+     }
+    }
+   },
+   "headlines": 75,
+   "ts": 1795087752,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795056407,
+ "updated": 1795087752,
  "news_block_until": 1795058507
 }
