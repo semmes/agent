@@ -246,9 +246,38 @@
    "headlines": 72,
    "ts": 1795036907,
    "action": "started"
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'stolen': Binance Wins ADGM Court Order to Claw Back Stolen Crypto - PYMNTS.com",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.24,
+      "range_vs_typical": 0.8,
+      "worst_1h_pct": -0.6,
+      "hours_checked": 5.5
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.46,
+      "range_vs_typical": 0.8,
+      "worst_1h_pct": -0.46,
+      "hours_checked": 5.5
+     }
+    }
+   },
+   "headlines": 67,
+   "ts": 1795056407,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795036907,
+ "updated": 1795056407,
  "news_block_until": 1795058507
 }
