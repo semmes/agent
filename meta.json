@@ -420,9 +420,38 @@
    "headlines": 74,
    "ts": 1795196712,
    "action": "started"
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'crash': Ethereum price falls below $1,800: is a bigger crash coming? - Cryptonews.net",
+   "warning": true,
+   "block": true,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": true,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.41,
+      "range_vs_typical": 0.8,
+      "worst_1h_pct": -1.44,
+      "hours_checked": 6.0
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.22,
+      "range_vs_typical": 0.9,
+      "worst_1h_pct": -2.26,
+      "hours_checked": 6.0
+     }
+    }
+   },
+   "headlines": 66,
+   "ts": 1795219022,
+   "action": "started"
   }
  ],
  "finished": false,
- "updated": 1795196712,
- "news_block_until": 1795218312
+ "updated": 1795219022,
+ "news_block_until": 1795240622
 }
