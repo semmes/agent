@@ -362,9 +362,38 @@
    "headlines": 67,
    "ts": 1795138008,
    "action": "extended"
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'plunges': Wrapped Monero token plunges 99% as issuer-linked wallet sells $13.5 million",
+   "warning": true,
+   "block": true,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": true,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.04,
+      "range_vs_typical": 0.7,
+      "worst_1h_pct": -1.39,
+      "hours_checked": 7.75
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.07,
+      "range_vs_typical": 0.7,
+      "worst_1h_pct": -1.68,
+      "hours_checked": 7.75
+     }
+    }
+   },
+   "headlines": 73,
+   "ts": 1795165647,
+   "action": "started"
   }
  ],
  "finished": false,
- "updated": 1795138008,
- "news_block_until": 1795159608
+ "updated": 1795165647,
+ "news_block_until": 1795187247
 }
