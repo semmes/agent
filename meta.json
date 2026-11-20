@@ -391,9 +391,38 @@
    "headlines": 73,
    "ts": 1795165647,
    "action": "started"
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'plunges': Bitcoin Plunges to $59,000, Its Lowest Level Since July - www.trendingtopics.eu",
+   "warning": true,
+   "block": true,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": true,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.75,
+      "range_vs_typical": 1.7,
+      "worst_1h_pct": -3.74,
+      "hours_checked": 8.75
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -1.02,
+      "range_vs_typical": 1.9,
+      "worst_1h_pct": -5.04,
+      "hours_checked": 8.75
+     }
+    }
+   },
+   "headlines": 74,
+   "ts": 1795196712,
+   "action": "started"
   }
  ],
  "finished": false,
- "updated": 1795165647,
- "news_block_until": 1795187247
+ "updated": 1795196712,
+ "news_block_until": 1795218312
 }

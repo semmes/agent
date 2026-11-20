@@ -1,8 +1,8 @@
 # Paper trading report
 
-Updated 2026-11-20 04:07 EST. Simulated money only.
+Updated 2026-11-20 12:45 EST. Simulated money only.
 
-**Status:** Flat, waiting for a setup. New entries blocked by news until 11-20 10:07 EST.
+**Status:** Flat, waiting for a setup. New entries blocked by news until 11-20 18:45 EST.
 
 - **Equity:** $5,000.00 (+0.00% since start, today +0.00%)
 - **Completed days:** 5: 0 up, 0 down, 5 flat; hit +target on 0, hit loss cap on 0; worst day +0.00%
@@ -20,8 +20,8 @@ Updated 2026-11-20 04:07 EST. Simulated money only.
 
 ## Latest news checks
 
+- 11-20 12:45: high / bearish (started a news block): Keyword 'plunges': Bitcoin Plunges to $59,000, Its Lowest Level Since July - www.trendingtopics.eu [keywords]
 - 11-20 04:07: high / bearish (started a news block): Keyword 'plunges': Wrapped Monero token plunges 99% as issuer-linked wallet sells $13.5 million [keywords]
 - 11-19 20:26: high / bearish (extended a news block): Keyword 'plunges': SoftBank plunges over 16% as AI sell-off hits Asian tech stocks following Anthropic debut [keywords]
 - 11-19 14:37: high / bearish (started a news block): Keyword 'hackers': Binance wins $6.5 billion feezing order against hackers behind crypto's largest theft [keywords]
 - 11-19 06:29: high / bearish (warning not confirmed by price): Keyword 'emergency': BTCPay Server issues emergency update for 5 security flaws [keywords]
-- 11-18 21:46: high / bearish (warning not confirmed by price): Keyword 'stolen': Binance Wins ADGM Court Order to Claw Back Stolen Crypto - PYMNTS.com [keywords]
