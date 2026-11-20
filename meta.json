@@ -333,9 +333,38 @@
    "headlines": 70,
    "ts": 1795117024,
    "action": "started"
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'plunges': SoftBank plunges over 16% as AI sell-off hits Asian tech stocks following Anthropic debut",
+   "warning": true,
+   "block": true,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": true,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 0.48,
+      "range_vs_typical": 1.4,
+      "worst_1h_pct": -1.5,
+      "hours_checked": 5.75
+     },
+     "ETH-USD": {
+      "ret_1h_pct": 0.12,
+      "range_vs_typical": 1.1,
+      "worst_1h_pct": -1.48,
+      "hours_checked": 5.75
+     }
+    }
+   },
+   "headlines": 67,
+   "ts": 1795138008,
+   "action": "extended"
   }
  ],
  "finished": false,
- "updated": 1795117024,
- "news_block_until": 1795138624
+ "updated": 1795138008,
+ "news_block_until": 1795159608
 }
