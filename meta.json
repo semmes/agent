@@ -478,9 +478,38 @@
    "headlines": 64,
    "ts": 1795244160,
    "action": "started"
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'crashes': Bitcoin Crashes Below $56,000 as $2.7 Billion Crypto Liquidation Wipes Out Traders - 24/7 Wall St.",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 0.05,
+      "range_vs_typical": 0.8,
+      "worst_1h_pct": -0.81,
+      "hours_checked": 8.5
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.02,
+      "range_vs_typical": 0.8,
+      "worst_1h_pct": -0.69,
+      "hours_checked": 8.5
+     }
+    }
+   },
+   "headlines": 63,
+   "ts": 1795274218,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795244160,
+ "updated": 1795274218,
  "news_block_until": 1795265760
 }
