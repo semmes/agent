@@ -118,7 +118,11 @@ def test_gate_checks_and_input_validation():
     c, cfg = gate_prices(), TrendConfig()
     same = gate(c, cfg, replace(cfg))
     assert not same["passed"] and not same["checks"]["better_sharpe_in_2_of_3_periods"]
-    assert same["checks"]["drawdown_not_worse_by_2pts"] and same["checks"]["hard_fill_sharpe_not_worse"]
+    assert same["checks"]["drawdown_not_worse_by_2pts"]
+    assert not same["checks"]["better_sharpe_from_most_start_dates"]
+    assert "hard_fill_sharpe_not_worse" not in same["checks"]  # both trade at once: no fill risk to test
+    resting = gate(c, cfg, replace(cfg, execution="maker_first"))
+    assert "hard_fill_sharpe_not_worse" in resting["checks"]
     assert all(type(v) is bool for v in same["checks"].values())
     timid = gate(c, cfg, replace(cfg, target_vol=0.01))  # barely invested: fails the return check
     assert not timid["checks"]["return_at_least_target_or_baseline"]
