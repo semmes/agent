@@ -30,15 +30,20 @@ settings; it does not and cannot retrain the AI model. Run one cycle a week, or 
    do not re-test something already rejected unless the reason for rejection has changed.
 4. **Test.** A candidate found by scanning many settings and keeping the best is not eligible on
    its backtest alone: the best of N settings looks better than it is. Record N, and adopt it only
-   if its Sharpe gain over the current setting is larger than the best of N would show by chance
-   (the deflated-Sharpe and walk-forward tools in `tradebot/quant.py`), checked by a sub-agent.
+   if a sub-agent shows its Sharpe gain over the current setting is larger than the best of N
+   would show by chance (for example with a block bootstrap of the paired daily returns, or
+   `walk_forward` in `tradebot/quant.py`; `deflated_sharpe` there tests a return series against
+   zero, so apply it to the daily difference in returns, not to the candidate alone).
    Write the candidate as a copy of `trend.yaml` and run
    `python -m tradebot.quant gate --candidate FILE`. The gate repeats the comparison from 13 start
-   dates and compares medians. It requires a better Sharpe ratio in two of three periods and from
-   at least two thirds of the start dates, a latest-period Sharpe within 0.05 of the current one, drawdown no more
+   dates and compares the two settings start by start, using the median of the paired
+   differences. It requires a better Sharpe ratio in two of three periods and from at least two
+   thirds of the start dates, a latest-period Sharpe within 0.05 of the current one, drawdown no more
    than 2 points worse, a return at least the 20% target (or the current return if lower), and,
-   when either config uses resting orders, the same Sharpe tests with fills assumed hard (price
-   must trade 1% through them).
+   when either config uses resting orders and fills are assumed hard (price must trade 1% through
+   them), an overall Sharpe no worse and a latest-period Sharpe within 0.05.
+   The 13 starts differ only in 2017; from 2020 on they give nearly the same result, so the gate
+   is mainly a guard against start-date luck, not 13 independent tests.
    A change that lowers risk and return together is a choice for the owner, not an improvement. The candidate file must be a full copy
    of `trend.yaml` with only the intended keys changed; the gate prints every setting that
    differs, so check that list. Code changes also need tests. Do not loosen the gate to pass a candidate;

@@ -155,3 +155,23 @@ def test_fee_projection_reaches_lower_tiers():
     assert p["taker_fee_pct"].iloc[0] == pytest.approx(0.9) and p["taker_fee_pct"].iloc[-1] < 0.9
     half = fee_projection(TrendConfig(), turnover=5.0, maker_share=1.0, years=20)
     assert half["fee_drag_pct_per_year"].iloc[0] < p["fee_drag_pct_per_year"].iloc[0]
+
+
+
+def test_gate_compares_start_by_start():
+    """The baseline's own median (1.2) is below the candidate's (1.9), but the candidate loses the
+    period from 6 of 13 starts by more than it wins from the other 7, so paired it is not a win."""
+    from tradebot.quant import compare_runs
+    run = lambda p, s: {"period_sharpes": [p, 1.0, 1.0], "sharpe": s, "annual_return_pct": 25.0,
+                        "max_drawdown_pct": -20.0}
+    base = [run(1.2, 1.0)] * 7 + [run(3.0, 1.0)] * 6
+    cand = [run(1.25, 1.1)] * 7 + [run(1.9, 1.1)] * 6
+    b, c, gain, start_wins, checks = compare_runs(base, cand, 0.20, resting=False)
+    assert c["period_sharpes"][0] > b["period_sharpes"][0]  # separate medians would call it a win
+    assert gain[0] > 0  # paired median: 7 of 13 starts are +0.05, so the median is still positive
+    cand2 = [run(1.25, 1.1)] * 6 + [run(1.9, 1.1)] * 7
+    base2 = [run(1.2, 1.0)] * 6 + [run(3.0, 1.0)] * 7
+    _, c2, gain2, _, checks2 = compare_runs(base2, cand2, 0.20, resting=False)
+    assert gain2[0] < 0 and not checks2["better_sharpe_in_2_of_3_periods"]
+    assert start_wins == 13 and checks["better_sharpe_from_most_start_dates"]
+    assert "hard_fill_sharpe_not_worse" not in checks
