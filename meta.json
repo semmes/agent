@@ -449,9 +449,38 @@
    "headlines": 66,
    "ts": 1795219022,
    "action": "started"
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'plummet': Markets and Anthropic Plummet on AI Fear - Bloomberg.com",
+   "warning": true,
+   "block": true,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": true,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 2.41,
+      "range_vs_typical": 4.6,
+      "worst_1h_pct": -4.38,
+      "hours_checked": 7.0
+     },
+     "ETH-USD": {
+      "ret_1h_pct": 3.35,
+      "range_vs_typical": 4.4,
+      "worst_1h_pct": -3.8,
+      "hours_checked": 7.0
+     }
+    }
+   },
+   "headlines": 64,
+   "ts": 1795244160,
+   "action": "started"
   }
  ],
  "finished": false,
- "updated": 1795219022,
- "news_block_until": 1795240622
+ "updated": 1795244160,
+ "news_block_until": 1795265760
 }
