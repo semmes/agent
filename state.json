@@ -9,8 +9,8 @@
  "high_water": 0.0,
  "pending": null,
  "marks": {
-  "BTC-USD": 60215.51,
-  "ETH-USD": 1690.85
+  "BTC-USD": 60321.27,
+  "ETH-USD": 1683.15
  },
  "day": "2026-11-21",
  "day_start_equity": 5000.0,
@@ -19,7 +19,7 @@
  "week": "2026-W47",
  "week_start_equity": 5000.0,
  "shutdown": "",
- "last_ts": "2026-11-21T15:00:00Z",
+ "last_ts": "2026-11-21T20:45:00Z",
  "trades": [],
  "days": [
   {
