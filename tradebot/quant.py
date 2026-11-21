@@ -111,50 +111,86 @@ def intraday_momentum(candles: pd.DataFrame, split: str = "2025-11-15") -> pd.Da
 
 
 GATE_PERIODS = [("2017", "2019"), ("2020", "2022"), ("2023", None)]
-GATE_START = "2017-01-01"
+
+
+def compare_runs(base_runs: list[dict], cand_runs: list[dict], annual_target: float, resting: bool):
+    """Gate checks from per-start results. Each comparison pairs the two configs run from the
+    same start date and takes the median of the differences, so neither config's median can come
+    from a different start than the one it is compared against."""
+    def paired(key: str, i: int | None = None) -> float:
+        pick = (lambda x: x[key][i]) if i is not None else (lambda x: x[key])
+        return float(np.median([pick(c) - pick(b) for c, b in zip(cand_runs, base_runs)]))
+
+    def medians(runs: list[dict]) -> dict:  # for display, and for the return floor
+        out = {"period_sharpes": [float(np.median([x["period_sharpes"][i] for x in runs]))
+                                  for i in range(len(runs[0]["period_sharpes"]))]}
+        out.update({k: float(np.median([x[k] for x in runs])) for k in runs[0] if k != "period_sharpes"})
+        return out
+
+    base, cand = medians(base_runs), medians(cand_runs)
+    period_gain = [paired("period_sharpes", i) for i in range(len(base["period_sharpes"]))]
+    wins = sum(g > 0 for g in period_gain)
+    start_wins = sum(c["sharpe"] > b["sharpe"] for c, b in zip(cand_runs, base_runs))
+    target = min(base["annual_return_pct"], annual_target * 100)
+    checks = {
+        "better_sharpe_in_2_of_3_periods": bool(wins >= 2),
+        "better_sharpe_from_most_start_dates": bool(start_wins * 3 >= 2 * len(base_runs)),
+        "latest_period_sharpe_within_0.05": bool(period_gain[-1] >= -0.05),
+        "drawdown_not_worse_by_2pts": bool(paired("max_drawdown_pct") >= -2),
+        "return_at_least_target_or_baseline": bool(cand["annual_return_pct"] >= target),
+    }
+    if resting:
+        checks["hard_fill_sharpe_not_worse"] = bool(paired("hard_fill_sharpe") >= 0)
+        checks["hard_fill_latest_sharpe_within_0.05"] = bool(paired("hard_fill_latest_sharpe") >= -0.05)
+    return base, cand, period_gain, start_wins, checks
+
+
+# The comparison is repeated from 13 start dates two weeks apart and the medians are compared,
+# so a result that depends on the exact day the backtest starts does not pass.
+GATE_STARTS = [str((pd.Timestamp("2017-01-01") + pd.Timedelta(weeks=2 * k)).date()) for k in range(13)]
+GATE_START = GATE_STARTS[0]
 HARD_FILL_BUFFER = 0.01  # stress: a resting order fills only if price trades 1% through it
 
 
 def gate(candles: pd.DataFrame, baseline: TrendConfig, candidate: TrendConfig) -> dict:
     """Promotion gate: a candidate replaces the baseline only if its risk-adjusted return is
-    better across periods (not just overall), it does not add drawdown, it still holds up when
-    resting orders are assumed hard to fill, and it does not give up the return target."""
+    better across periods and across start dates (not just overall from one day), comparing the
+    two configs start by start (paired), it does not
+    add drawdown, it holds up when resting orders are hard to fill (checked only when either
+    config uses resting orders), and it does not give up the return target."""
     if candidate.product != baseline.product:
         raise ValueError("Candidate and baseline must trade the same product")
     if candles.index[0] > pd.Timestamp("2016-06-01"):
         raise ValueError("The gate needs daily history from mid-2016 so all three periods are covered")
+    resting = "maker_first" in (baseline.execution, candidate.execution)
 
-    def profile(cfg: TrendConfig) -> dict:
-        eq = equity_curve(run(candles, cfg, start=GATE_START))
-        if eq.index[0] != pd.Timestamp(GATE_START):
-            raise ValueError(f"Config cannot trade from {GATE_START} (first day {eq.index[0].date()}): "
+    def one_start(cfg: TrendConfig, start: str) -> dict:
+        eq = equity_curve(run(candles, cfg, start=start))
+        if eq.index[0] != pd.Timestamp(start):
+            raise ValueError(f"Config cannot trade from {start} (first day {eq.index[0].date()}): "
                              "its indicators need more history than the data holds")
         r = eq.pct_change().fillna(0)
-        hard_cfg = replace(cfg, fill_buffer=max(HARD_FILL_BUFFER, cfg.fill_buffer))
-        hard = equity_curve(run(candles, hard_cfg, start=GATE_START)).pct_change().fillna(0)
-        return {"period_sharpes": [sharpe(r.loc[a:b]) for a, b in GATE_PERIODS],
-                "sharpe": sharpe(r), "hard_fill_sharpe": sharpe(hard),
-                "hard_fill_latest_sharpe": sharpe(hard.loc[GATE_PERIODS[-1][0]:]),
-                "annual_return_pct": ((eq.iloc[-1] / cfg.starting_cash) ** (365 / len(eq)) - 1) * 100,
-                "max_drawdown_pct": (eq / eq.cummax() - 1).min() * 100}
+        out = {"period_sharpes": [sharpe(r.loc[a:b]) for a, b in GATE_PERIODS], "sharpe": sharpe(r),
+               "annual_return_pct": ((eq.iloc[-1] / cfg.starting_cash) ** (365 / len(eq)) - 1) * 100,
+               "max_drawdown_pct": (eq / eq.cummax() - 1).min() * 100}
+        if resting:
+            hard_cfg = replace(cfg, fill_buffer=max(HARD_FILL_BUFFER, cfg.fill_buffer))
+            hard = equity_curve(run(candles, hard_cfg, start=start)).pct_change().fillna(0)
+            out["hard_fill_sharpe"] = sharpe(hard)
+            out["hard_fill_latest_sharpe"] = sharpe(hard.loc[GATE_PERIODS[-1][0]:])
+        return out
 
-    base, cand = profile(baseline), profile(candidate)
-    wins = sum(c > b for c, b in zip(cand["period_sharpes"], base["period_sharpes"]))
-    target = min(base["annual_return_pct"], baseline.annual_target * 100)
-    checks = {
-        "better_sharpe_in_2_of_3_periods": bool(wins >= 2),
-        "latest_period_sharpe_within_0.05": bool(cand["period_sharpes"][-1] >= base["period_sharpes"][-1] - 0.05),
-        "drawdown_not_worse_by_2pts": bool(cand["max_drawdown_pct"] >= base["max_drawdown_pct"] - 2),
-        "hard_fill_sharpe_not_worse": bool(cand["hard_fill_sharpe"] >= base["hard_fill_sharpe"]),
-        "hard_fill_latest_sharpe_within_0.05": bool(
-            cand["hard_fill_latest_sharpe"] >= base["hard_fill_latest_sharpe"] - 0.05),
-        "return_at_least_target_or_baseline": bool(cand["annual_return_pct"] >= target),
-    }
+    base_runs = [one_start(baseline, s) for s in GATE_STARTS]
+    cand_runs = [one_start(candidate, s) for s in GATE_STARTS]
+    base, cand, period_gain, start_wins, checks = compare_runs(
+        base_runs, cand_runs, baseline.annual_target, resting)
     rounded = lambda p: {k: [round(x, 2) for x in v] if isinstance(v, list) else round(float(v), 2) for k, v in p.items()}
     b, c = vars(baseline), vars(candidate)
     changed = {k: (b[k], c[k]) for k in b if b[k] != c[k]}  # shown so an unintended difference is visible
-    return {"changed_settings": changed, "baseline": rounded(base), "candidate": rounded(cand),
-            "checks": checks, "passed": all(checks.values())}
+    return {"changed_settings": changed, "start_dates": f"{len(GATE_STARTS)} ({GATE_STARTS[0]} to {GATE_STARTS[-1]})",
+            "candidate_better_sharpe_from": f"{start_wins} of {len(GATE_STARTS)} start dates",
+            "paired_period_sharpe_gain": [round(g, 2) for g in period_gain],
+            "baseline": rounded(base), "candidate": rounded(cand), "checks": checks, "passed": all(checks.values())}
 
 
 if __name__ == "__main__":
@@ -175,9 +211,10 @@ if __name__ == "__main__":
         if not a.candidate:
             ap.error("gate needs --candidate FILE")
         if a.start != GATE_START:
-            ap.error(f"gate always runs from {GATE_START}; --start is not accepted")
+            ap.error(f"gate always runs from its {len(GATE_STARTS)} fixed start dates; --start is not accepted")
         result = gate(load_daily(cfg.product), cfg, load_trend_config(a.candidate))
-        for key in ("changed_settings", "baseline", "candidate", "checks"):
+        for key in ("changed_settings", "start_dates", "candidate_better_sharpe_from", "paired_period_sharpe_gain",
+                    "baseline", "candidate", "checks"):
             print(f"{key}: {result[key]}")
         print("PASSED" if result["passed"] else "REJECTED")
     elif a.command == "fees":

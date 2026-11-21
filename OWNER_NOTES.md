@@ -45,6 +45,12 @@ anything that can be looked up (results, code, state) belongs elsewhere.
   did worse than the trend rules. News could not be included (no free archive); headlines are
   now being logged hourly for a later test.
 
+- 2026-11-21 (weekly cycle): both tracks healthy and flat while BTC fell about 30% in a month.
+  The lower-risk trend setting (target_vol 0.15, rebalance_band 0.30) was not adopted: its edge
+  is within the range of luck for a setting picked from 36. Offered to the owner as a choice:
+  roughly -17.5% worst drawdown instead of -24%, and fees 1.3% instead of 3.6% a year, for about
+  5 points a year less return on average.
+
 ## How the weekly cycle runs
 
 - It runs inside the owner's original conversation (session "Daily 1% gain trading agent plan"),
