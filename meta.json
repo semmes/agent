@@ -536,9 +536,38 @@
    "headlines": 62,
    "ts": 1795295057,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'crash': At 74, a Machinist Planned to Pay for His Nursing Home With $150,000 in Bitcoin. After the Crash It's Worth About $90,000, and the Loss Will Get Him Onto Medicaid About 5\u00bd Months Sooner - 24/7 Wall St.",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.02,
+      "range_vs_typical": 0.4,
+      "worst_1h_pct": -0.54,
+      "hours_checked": 4.0
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.09,
+      "range_vs_typical": 0.3,
+      "worst_1h_pct": -0.44,
+      "hours_checked": 4.0
+     }
+    }
+   },
+   "headlines": 60,
+   "ts": 1795309918,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795295057,
+ "updated": 1795309918,
  "news_block_until": 1795265760
 }
