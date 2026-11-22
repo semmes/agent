@@ -565,9 +565,38 @@
    "headlines": 60,
    "ts": 1795309918,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'hack': Binance Wins $6.5bn Freezing Order Over October\u2019s Record Crypto Hack - Arise News",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 1.15,
+      "range_vs_typical": 2.0,
+      "worst_1h_pct": -1.21,
+      "hours_checked": 7.5
+     },
+     "ETH-USD": {
+      "ret_1h_pct": 1.26,
+      "range_vs_typical": 1.9,
+      "worst_1h_pct": -1.38,
+      "hours_checked": 7.5
+     }
+    }
+   },
+   "headlines": 62,
+   "ts": 1795337069,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795309918,
+ "updated": 1795337069,
  "news_block_until": 1795265760
 }
