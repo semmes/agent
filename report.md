@@ -1,6 +1,6 @@
 # Paper trading report
 
-Updated 2026-11-22 12:03 EST. Simulated money only.
+Updated 2026-11-22 17:26 EST. Simulated money only.
 
 **Status:** Flat, waiting for a setup.
 
@@ -22,8 +22,8 @@ Updated 2026-11-22 12:03 EST. Simulated money only.
 
 ## Latest news checks
 
+- 11-22 17:26: high / bearish (warning not confirmed by price): Keyword 'ban crypto': UK to ban crypto exchanges from making markets on their own platforms as Bitcoin rules change - Cryptonews.net [keywords]
 - 11-22 12:03: low / neutral: No risk keywords in recent headlines [keywords]
 - 11-22 03:44: high / bearish (warning not confirmed by price): Keyword 'hack': Binance Wins $6.5bn Freezing Order Over October’s Record Crypto Hack - Arise News [keywords]
 - 11-21 20:11: high / bearish (warning not confirmed by price): Keyword 'crash': At 74, a Machinist Planned to Pay for His Nursing Home With $150,000 in Bitcoin. After the Crash It's Worth About $90,000, and the Loss Will Get Him Onto Medicaid About 5½ Months Sooner - 24/7 Wall St. [keywords]
 - 11-21 16:04: high / bearish (warning not confirmed by price): Keyword 'exploit': Cyber bridge exploit mints 5.21 million CYBER tokens, Upbit and Bithumb freeze transfers - Crypto Briefing [keywords]
-- 11-21 10:16: high / bearish (warning not confirmed by price): Keyword 'crashes': Bitcoin Crashes Below $56,000 as $2.7 Billion Crypto Liquidation Wipes Out Traders - 24/7 Wall St. [keywords]
