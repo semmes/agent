@@ -681,9 +681,38 @@
    "headlines": 4,
    "ts": 1795402982,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'plunge': Bitcoin Rebounds to $61K After Weekend Plunge to Two-Year Low - Yahoo Finance",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 0.06,
+      "range_vs_typical": 0.6,
+      "worst_1h_pct": -0.55,
+      "hours_checked": 9.25
+     },
+     "ETH-USD": {
+      "ret_1h_pct": 0.01,
+      "range_vs_typical": 0.5,
+      "worst_1h_pct": -0.6,
+      "hours_checked": 9.25
+     }
+    }
+   },
+   "headlines": 72,
+   "ts": 1795436233,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795402982,
+ "updated": 1795436233,
  "news_block_until": 1795265760
 }
