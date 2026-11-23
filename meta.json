@@ -652,9 +652,38 @@
    "headlines": 61,
    "ts": 1795386375,
    "action": null
+  },
+  {
+   "risk": "low",
+   "direction": "neutral",
+   "reason": "No risk keywords in recent headlines",
+   "warning": false,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.41,
+      "range_vs_typical": 1.1,
+      "worst_1h_pct": -0.79,
+      "hours_checked": 4.75
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.21,
+      "range_vs_typical": 1.0,
+      "worst_1h_pct": -0.77,
+      "hours_checked": 4.75
+     }
+    }
+   },
+   "headlines": 4,
+   "ts": 1795402982,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795386375,
+ "updated": 1795402982,
  "news_block_until": 1795265760
 }
