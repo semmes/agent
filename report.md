@@ -1,8 +1,8 @@
 # Paper trading report
 
-Updated 2026-11-23 07:17 EST. Simulated money only.
+Updated 2026-11-23 19:17 EST. Simulated money only.
 
-**Status:** Flat, waiting for a setup.
+**Status:** Flat, waiting for a setup. New entries blocked by news until 11-24 01:17 EST.
 
 - **Equity:** $5,000.00 (+0.00% since start, today +0.00%)
 - **Completed days:** 8: 0 up, 0 down, 8 flat; hit +target on 0, hit loss cap on 0; worst day +0.00%
@@ -23,8 +23,8 @@ Updated 2026-11-23 07:17 EST. Simulated money only.
 
 ## Latest news checks
 
+- 11-23 19:17: high / bearish (started a news block): Keyword 'hack': ‘Nation State-Grade’ iPhone Hack Leaves Crypto Wallets, Password Managers, Data, Messages And Photos At Risk - Forbes [keywords]
 - 11-23 07:17: high / bearish (warning not confirmed by price): Keyword 'plunge': Bitcoin Rebounds to $61K After Weekend Plunge to Two-Year Low - Yahoo Finance [keywords]
 - 11-22 22:03: low / neutral: No risk keywords in recent headlines [keywords]
 - 11-22 17:26: high / bearish (warning not confirmed by price): Keyword 'ban crypto': UK to ban crypto exchanges from making markets on their own platforms as Bitcoin rules change - Cryptonews.net [keywords]
 - 11-22 12:03: low / neutral: No risk keywords in recent headlines [keywords]
-- 11-22 03:44: high / bearish (warning not confirmed by price): Keyword 'hack': Binance Wins $6.5bn Freezing Order Over October’s Record Crypto Hack - Arise News [keywords]

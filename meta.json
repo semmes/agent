@@ -710,9 +710,38 @@
    "headlines": 72,
    "ts": 1795436233,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'hack': \u2018Nation State-Grade\u2019 iPhone Hack Leaves Crypto Wallets, Password Managers, Data, Messages And Photos At Risk - Forbes",
+   "warning": true,
+   "block": true,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": true,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.38,
+      "range_vs_typical": 1.0,
+      "worst_1h_pct": -1.56,
+      "hours_checked": 12.0
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.57,
+      "range_vs_typical": 1.0,
+      "worst_1h_pct": -2.6,
+      "hours_checked": 12.0
+     }
+    }
+   },
+   "headlines": 67,
+   "ts": 1795479473,
+   "action": "started"
   }
  ],
  "finished": false,
- "updated": 1795436233,
- "news_block_until": 1795265760
+ "updated": 1795479473,
+ "news_block_until": 1795501073
 }
