@@ -855,9 +855,38 @@
    "headlines": 76,
    "ts": 1795616024,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'stolen': Stablecoin Giant Tether Reportedly Sought a 20% Cut to Return Stolen Crypto - Gizmodo",
+   "warning": true,
+   "block": true,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": true,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 0.21,
+      "range_vs_typical": 0.6,
+      "worst_1h_pct": -1.57,
+      "hours_checked": 9.25
+     },
+     "ETH-USD": {
+      "ret_1h_pct": 0.36,
+      "range_vs_typical": 0.6,
+      "worst_1h_pct": -1.43,
+      "hours_checked": 9.25
+     }
+    }
+   },
+   "headlines": 72,
+   "ts": 1795648590,
+   "action": "started"
   }
  ],
  "finished": false,
- "updated": 1795616024,
- "news_block_until": 1795501073
+ "updated": 1795648590,
+ "news_block_until": 1795670190
 }
