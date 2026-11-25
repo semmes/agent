@@ -826,9 +826,38 @@
    "headlines": 64,
    "ts": 1795579571,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'crash': It\u2019s \u2018Coming\u2019\u2014Massive AI Crash Predicted To Trigger $25 Trillion Bitcoin Price Boom - Forbes",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -1.14,
+      "range_vs_typical": 2.0,
+      "worst_1h_pct": -1.14,
+      "hours_checked": 10.0
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.96,
+      "range_vs_typical": 2.0,
+      "worst_1h_pct": -1.15,
+      "hours_checked": 10.0
+     }
+    }
+   },
+   "headlines": 76,
+   "ts": 1795616024,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795579571,
+ "updated": 1795616024,
  "news_block_until": 1795501073
 }
