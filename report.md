@@ -1,17 +1,18 @@
 # Paper trading report
 
-Updated 2026-11-25 18:16 EST. Simulated money only.
+Updated 2026-11-26 00:24 EST. Simulated money only.
 
-**Status:** Flat, waiting for a setup. New entries blocked by news until 11-26 00:16 EST.
+**Status:** Flat, waiting for a setup.
 
 - **Equity:** $5,000.00 (+0.00% since start, today +0.00%)
-- **Completed days:** 10: 0 up, 0 down, 10 flat; hit +target on 0, hit loss cap on 0; worst day +0.00%
+- **Completed days:** 11: 0 up, 0 down, 11 flat; hit +target on 0, hit loss cap on 0; worst day +0.00%
 - **Trades:** 0, fees paid $0.00
 
 ## Days
 
 | Day | Start | End | P&L % | Trades | Ended by |
 |---|---|---|---|---|---|
+| 2026-11-25 | 5,000.00 | 5,000.00 | +0.00 | 0 | - |
 | 2026-11-24 | 5,000.00 | 5,000.00 | +0.00 | 0 | - |
 | 2026-11-23 | 5,000.00 | 5,000.00 | +0.00 | 0 | - |
 | 2026-11-22 | 5,000.00 | 5,000.00 | +0.00 | 0 | - |
@@ -25,8 +26,8 @@ Updated 2026-11-25 18:16 EST. Simulated money only.
 
 ## Latest news checks
 
+- 11-26 00:24: high / bearish (warning not confirmed by price): Keyword 'hacker': 1Password hacker stole customer names and emails, but vaults safe [keywords]
 - 11-25 18:16: high / bearish (started a news block): Keyword 'stolen': Stablecoin Giant Tether Reportedly Sought a 20% Cut to Return Stolen Crypto - Gizmodo [keywords]
 - 11-25 09:13: high / bearish (warning not confirmed by price): Keyword 'crash': It’s ‘Coming’—Massive AI Crash Predicted To Trigger $25 Trillion Bitcoin Price Boom - Forbes [keywords]
 - 11-24 23:06: high / bearish (warning not confirmed by price): Keyword 'plunge': Bitcoin Reserve on All Exchanges Plunge By Nearly 43,000 Coins in 30 Days Amid BTC Selloff - Cryptonews.net [keywords]
 - 11-24 15:50: low / neutral: No risk keywords in recent headlines [keywords]
-- 11-24 05:21: low / neutral: No risk keywords in recent headlines [keywords]

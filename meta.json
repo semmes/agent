@@ -884,9 +884,38 @@
    "headlines": 72,
    "ts": 1795648590,
    "action": "started"
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'hacker': 1Password hacker stole customer names and emails, but vaults safe",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": -0.16,
+      "range_vs_typical": 0.5,
+      "worst_1h_pct": -0.51,
+      "hours_checked": 6.0
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.27,
+      "range_vs_typical": 0.6,
+      "worst_1h_pct": -0.44,
+      "hours_checked": 6.0
+     }
+    }
+   },
+   "headlines": 64,
+   "ts": 1795670645,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795648590,
+ "updated": 1795670645,
  "news_block_until": 1795670190
 }
