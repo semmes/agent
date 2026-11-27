@@ -942,9 +942,38 @@
    "headlines": 74,
    "ts": 1795707763,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'hacking': Palo Alto Networks CEO warns Anthropic\u2019s Mythos makes hacking easier - Crypto Briefing",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 0.15,
+      "range_vs_typical": 0.7,
+      "worst_1h_pct": -0.51,
+      "hours_checked": 9.0
+     },
+     "ETH-USD": {
+      "ret_1h_pct": 0.17,
+      "range_vs_typical": 0.7,
+      "worst_1h_pct": -0.7,
+      "hours_checked": 9.0
+     }
+    }
+   },
+   "headlines": 66,
+   "ts": 1795739458,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795707763,
+ "updated": 1795739458,
  "news_block_until": 1795670190
 }
