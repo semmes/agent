@@ -1000,9 +1000,38 @@
    "headlines": 69,
    "ts": 1795770014,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'hack': Binance Fully Lifts Withdrawal Suspension a Month After $6.3 Billion Hack - Bitcoin Magazine",
+   "warning": true,
+   "block": true,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": true,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 0.37,
+      "range_vs_typical": 1.1,
+      "worst_1h_pct": -3.67,
+      "hours_checked": 9.75
+     },
+     "ETH-USD": {
+      "ret_1h_pct": 0.4,
+      "range_vs_typical": 1.2,
+      "worst_1h_pct": -4.03,
+      "hours_checked": 9.75
+     }
+    }
+   },
+   "headlines": 66,
+   "ts": 1795805556,
+   "action": "started"
   }
  ],
  "finished": false,
- "updated": 1795770014,
- "news_block_until": 1795670190
+ "updated": 1795805556,
+ "news_block_until": 1795827156
 }
