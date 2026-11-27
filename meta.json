@@ -971,9 +971,38 @@
    "headlines": 66,
    "ts": 1795739458,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'crash': Bitcoin's crash fears fade ahead of $7.5 billion options expiry, but December tells a different story - CryptoSlate",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 0.11,
+      "range_vs_typical": 1.2,
+      "worst_1h_pct": -0.28,
+      "hours_checked": 8.5
+     },
+     "ETH-USD": {
+      "ret_1h_pct": -0.23,
+      "range_vs_typical": 1.0,
+      "worst_1h_pct": -0.58,
+      "hours_checked": 8.5
+     }
+    }
+   },
+   "headlines": 69,
+   "ts": 1795770014,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795739458,
+ "updated": 1795770014,
  "news_block_until": 1795670190
 }

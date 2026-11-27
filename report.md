@@ -1,17 +1,18 @@
 # Paper trading report
 
-Updated 2026-11-26 19:30 EST. Simulated money only.
+Updated 2026-11-27 04:00 EST. Simulated money only.
 
 **Status:** Flat, waiting for a setup.
 
 - **Equity:** $5,000.00 (+0.00% since start, today +0.00%)
-- **Completed days:** 11: 0 up, 0 down, 11 flat; hit +target on 0, hit loss cap on 0; worst day +0.00%
+- **Completed days:** 12: 0 up, 0 down, 12 flat; hit +target on 0, hit loss cap on 0; worst day +0.00%
 - **Trades:** 0, fees paid $0.00
 
 ## Days
 
 | Day | Start | End | P&L % | Trades | Ended by |
 |---|---|---|---|---|---|
+| 2026-11-26 | 5,000.00 | 5,000.00 | +0.00 | 0 | - |
 | 2026-11-25 | 5,000.00 | 5,000.00 | +0.00 | 0 | - |
 | 2026-11-24 | 5,000.00 | 5,000.00 | +0.00 | 0 | - |
 | 2026-11-23 | 5,000.00 | 5,000.00 | +0.00 | 0 | - |
@@ -26,8 +27,8 @@ Updated 2026-11-26 19:30 EST. Simulated money only.
 
 ## Latest news checks
 
+- 11-27 04:00: high / bearish (warning not confirmed by price): Keyword 'crash': Bitcoin's crash fears fade ahead of $7.5 billion options expiry, but December tells a different story - CryptoSlate [keywords]
 - 11-26 19:30: high / bearish (warning not confirmed by price): Keyword 'hacking': Palo Alto Networks CEO warns Anthropic’s Mythos makes hacking easier - Crypto Briefing [keywords]
 - 11-26 10:42: low / neutral: No risk keywords in recent headlines [keywords]
 - 11-26 00:24: high / bearish (warning not confirmed by price): Keyword 'hacker': 1Password hacker stole customer names and emails, but vaults safe [keywords]
 - 11-25 18:16: high / bearish (started a news block): Keyword 'stolen': Stablecoin Giant Tether Reportedly Sought a 20% Cut to Return Stolen Crypto - Gizmodo [keywords]
-- 11-25 09:13: high / bearish (warning not confirmed by price): Keyword 'crash': It’s ‘Coming’—Massive AI Crash Predicted To Trigger $25 Trillion Bitcoin Price Boom - Forbes [keywords]
