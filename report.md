@@ -1,8 +1,8 @@
 # Paper trading report
 
-Updated 2026-11-27 13:52 EST. Simulated money only.
+Updated 2026-11-27 20:54 EST. Simulated money only.
 
-**Status:** Flat, waiting for a setup. New entries blocked by news until 11-27 19:52 EST.
+**Status:** Flat, waiting for a setup.
 
 - **Equity:** $5,000.00 (+0.00% since start, today +0.00%)
 - **Completed days:** 12: 0 up, 0 down, 12 flat; hit +target on 0, hit loss cap on 0; worst day +0.00%
@@ -27,8 +27,8 @@ Updated 2026-11-27 13:52 EST. Simulated money only.
 
 ## Latest news checks
 
+- 11-27 20:54: low / neutral: No risk keywords in recent headlines [keywords]
 - 11-27 13:52: high / bearish (started a news block): Keyword 'hack': Binance Fully Lifts Withdrawal Suspension a Month After $6.3 Billion Hack - Bitcoin Magazine [keywords]
 - 11-27 04:00: high / bearish (warning not confirmed by price): Keyword 'crash': Bitcoin's crash fears fade ahead of $7.5 billion options expiry, but December tells a different story - CryptoSlate [keywords]
 - 11-26 19:30: high / bearish (warning not confirmed by price): Keyword 'hacking': Palo Alto Networks CEO warns Anthropic’s Mythos makes hacking easier - Crypto Briefing [keywords]
 - 11-26 10:42: low / neutral: No risk keywords in recent headlines [keywords]
-- 11-26 00:24: high / bearish (warning not confirmed by price): Keyword 'hacker': 1Password hacker stole customer names and emails, but vaults safe [keywords]
