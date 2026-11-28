@@ -1058,9 +1058,38 @@
    "headlines": 62,
    "ts": 1795830842,
    "action": null
+  },
+  {
+   "risk": "high",
+   "direction": "bearish",
+   "reason": "Keyword 'plunges': World Liberty Financial token WLFI plunges as ether sale deepens crypto governance crisis - Traders Union",
+   "warning": true,
+   "block": false,
+   "scorer": "keywords",
+   "market": {
+    "confirmed": false,
+    "computed": true,
+    "detail": {
+     "BTC-USD": {
+      "ret_1h_pct": 0.04,
+      "range_vs_typical": 0.3,
+      "worst_1h_pct": -0.49,
+      "hours_checked": 8.25
+     },
+     "ETH-USD": {
+      "ret_1h_pct": 0.03,
+      "range_vs_typical": 0.4,
+      "worst_1h_pct": -0.54,
+      "hours_checked": 8.25
+     }
+    }
+   },
+   "headlines": 62,
+   "ts": 1795860838,
+   "action": null
   }
  ],
  "finished": false,
- "updated": 1795830842,
+ "updated": 1795860838,
  "news_block_until": 1795827156
 }
